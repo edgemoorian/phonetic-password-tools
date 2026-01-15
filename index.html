@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><!-- © 2026 Nigel Parkyn / Edgemoorian Software. All rights reserved. Unauthorized copying, modification, or distribution prohibited. -->
+    <meta charset="UTF-8"> <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edgemoorian Phonetic Tools</title>
+    <style>
+        :root {
+            --bg-main: #f5f5f5;
+            --bg-container: white;
+            --text-main: #333;
+            --text-bold: #2c3e50;
+            --green-box-bg: #e8f5e8;
+            --green-box-text: #1e6b1e;
+            --output-box-bg: #d0f0d0;
+            --output-box-text: #000000;
+            --green-hover: #c0e6c0;
+            --splash-bg: yellow;
+            --splash-text: black;
+            --jitter-color: red;
+            --button-blue: #3498db;
+            --button-orange: #f39c12;
+            --button-red: #c0392b;
+            --button-purple: #9b59b6;
+            --button-danger: #e74c3c;
+            --button-green: #27ae60;
+        }
+        [data-theme="dark"] {
+            --bg-main: #121212;
+            --bg-container: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-bold: #ffffff;
+            --green-box-bg: #0a3d0a;
+            --green-box-text: #90ee90;
+            --output-box-bg: #0a2d0a;
+            --output-box-text: #e0e0e0;
+            --green-hover: #1a5f1a;
+            --splash-bg: #4d4d00;
+            --splash-text: #ffff99;
+            --jitter-color: #ff6666;
+        }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text-main); background: var(--bg-main); transition: background 0.3s, color 0.3s; }
+        #splash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--splash-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: var(--splash-text); font-size: 28px; font-weight: bold; z-index: 2000; }
+        #splash::before { content: 'A B C 1 2 3 ! @ # $ % ^ & * ( ) _ + = { } [ ] | \\ : ; " < > ? / a b c 0 9 8 7 6 5 4 ~ `'; position: absolute; top: 0; left: 0; width: 100%; height: 100%; font-size: 40px; color: var(--jitter-color); opacity: 0.3; letter-spacing: 10px; word-spacing: 20px; line-height: 1.8; pointer-events: none; animation: jitter 10s infinite linear; z-index: -1; }
+        @keyframes jitter { 0% { transform: translate(0,0); } 100% { transform: translate(20px,30px); } }
+        #version { position: absolute; bottom: 20px; right: 20px; font-size: 16px; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 8px; pointer-events: none; }
+       .splash-buttons { 
+    margin-top: 20px; /* Reduced from 40px — moves buttons up */
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+    width: 80%; 
+    max-width: 400px; 
+    margin-bottom: 80px; /* Keeps bottom space — prevents cutoff */
+}
+        .splash-btn { padding: 20px; font-size: 20px; font-weight: bold; background: #2c3e50; color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.3); transition: all 0.2s ease; text-decoration: none; text-align: center; display: block; }
+        .splash-btn:hover { opacity: 0.9; transform: translateY(-3px); }
+        .about-btn { background: #8e44ad; }
+        .donate-btn { background: #f39c12; }
+        #language-selector { position: absolute; top: 20px; right: 20px; padding: 10px; font-size: 16px; border-radius: 8px; border: 2px solid #444; background: var(--bg-container); color: var(--text-main); }
+        #about-language-selector { margin: 20px auto; padding: 10px; font-size: 16px; border-radius: 8px; border: 2px solid #444; background: var(--bg-container); color: var(--text-main); width: 80%; max-width: 400px; }
+        #about-page, #converter-app, #generator-app { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); padding: 20px; box-sizing: border-box; overflow-y: auto; z-index: 100; }
+        .container { max-width: 700px; margin: 40px auto; background: var(--bg-container); padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: relative; transition: background 0.3s; }
+        h1 { text-align: center; color: var(--text-bold); }
+        textarea, input[type="number"], input[type="text"] { width: 100%; padding: 15px; font-size: 20px; border: 2px solid #444; background: var(--bg-container); color: var(--text-main); border-radius: 10px; margin: 10px 0; box-sizing: border-box; }
+        .phonetic-block, .output-box { margin-top: 20px; padding: 20px; background: var(--green-box-bg); border-radius: 10px; font-size: 24px; font-weight: bold; word-wrap: break-word; min-height: 60px; cursor: pointer; transition: background 0.3s; user-select: none; }
+        .phonetic-block { color: var(--green-box-text); }
+        .output-box { background: var(--output-box-bg); color: var(--output-box-text); }
+        .phonetic-block:hover, .output-box:hover { background: var(--green-hover); }
+        .highlighted { background: var(--green-box-bg) !important; box-shadow: 0 0 20px rgba(0, 150, 0, 0.8); }
+        .word-highlight { background: yellow !important; color: black !important; padding: 2px 6px; border-radius: 4px; animation: flash 0.8s; }
+        @keyframes flash { 0%, 100% { background: yellow; } 50% { background: #ffeb3b; } }
+        .phonetic-text .word { padding: 2px 4px; }
+        .label-bold { font-weight: bold; font-size: 20px; display: block; margin-bottom: 10px; color: var(--text-bold); }
+        .section-gap { margin-bottom: 40px; }
+        .buttons { margin-top: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .main-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .expanded-copy { display: none; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
+        .expanded-copy.show { display: flex; }
+        .expanded-copy button { flex: 1 1 120px; min-width: 120px; padding: 10px 12px; font-size: 14px; }
+        .speech-controls-row { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+        #convert-speak, #speak-aloud { background: var(--button-blue); color: white; padding: 12px 20px; font-size: 16px; width: 140px; }
+        #converter-pause-resume, #generator-pause-resume { background: var(--button-orange); color: white; padding: 12px 16px; font-size: 16px; width: 100px; }
+        #converter-stop, #generator-stop { background: var(--button-red); color: white; padding: 12px 16px; font-size: 16px; width: 100px; }
+        #share-converter, #share-generator, #qr-converter, #qr-generator { background: var(--button-purple); color: white; }
+        #copy-button, #generator-copy-button { background: var(--button-green); color: white; }
+        .back-btn, .clear-btn { background: var(--button-danger); color: white; margin-top: 20px; width: 100%; }
+        .clear-btn { background: #e67e22; }
+        .checkbox-label { font-size: 18px; padding-left: 10px; cursor: pointer; display: block; margin: 10px 0; color: var(--text-main); }
+        .custom-label { font-size: 16px; }
+        #converter-app .container #theme-toggle,
+        #generator-app .container #theme-toggle {
+            position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.2); border: none; font-size: 24px;
+            cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            z-index: 1000; transition: background 0.3s;
+        }
+        #converter-app .container #theme-toggle:hover,
+        #generator-app .container #theme-toggle:hover { background: rgba(0,0,0,0.4); }
+        #converter-username-input, #converter-password-input, #generator-username-input { display: none; margin-top: 10px; }
+        #custom-words-container { display: none; margin: 15px 0; }
+        .qr-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 3000; flex-direction: column; }
+        .qr-modal-content { background: var(--bg-container); padding: 30px; border-radius: 16px; text-align: center; max-width: 90%; }
+        .qr-modal img { max-width: 100%; height: auto; border: 1px solid #ccc; border-radius: 8px; }
+        .qr-close { margin-top: 20px; padding: 10px 20px; background: var(--button-red); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; }
+        #strength-meter { width: 100%; height: 20px; background: #ddd; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        #strength-bar { height: 100%; width: 0%; transition: width 0.5s ease, background 0.5s ease; background: red; }
+        #strength-text { font-weight: bold; margin-top: 5px; }
+        .about-content { display: none; }
+        .about-content.active { display: block; }
+    </style>
+</head>
+<body>
+   <div id="splash">
+    <select id="language-selector">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="it">Italiano</option>
+        <option value="nl">Nederlands</option>
+        <option value="pt">Português</option>
+        <option value="ru">Русский</option>
+        <option value="zh">中文 (简体)</option>
+    </select>
+ <div style="margin-top: 80px; font-size: 32px; font-weight: bold; text-align: center;">
+    Edgemoorian Phonetic & Password Tools
+</div>
+    <div class="splash-buttons">
+        <button class="splash-btn" id="btn-converter">Alphanumeric To Phonetic Converter</button>
+        <button class="splash-btn" id="btn-generator">Password Phonetic Generator</button>
+        <button class="splash-btn about-btn" id="btn-about">About</button>
+        <a class="splash-btn donate-btn" href="https://ko-fi.com/edgemoorian" target="_blank">Buy me a coffee ❤️</a>
+        <a class="splash-btn donate-btn" href="https://paypal.me/edgemoorian" target="_blank">Donate with PayPal 💙</a>
+    </div>
+    <div id="version">ver 1.0</div>
+</div>
+    <div id="about-page">
+        <div class="container">
+            <button id="theme-toggle">🌙</button>
+            <select id="about-language-selector">
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="es">Español</option>
+                <option value="it">Italiano</option>
+                <option value="nl">Nederlands</option>
+                <option value="pt">Português</option>
+                <option value="ru">Русский</option>
+                <option value="zh">中文 (简体)</option>
+            </select>
+            <div id="about-content-en" class="about-content active">
+                <h1>Edgemoorian Phonetic Tools</h1>
+                <p><strong>Developed by Edgemoorian Software</strong></p>
+                <p><strong>Developer: Nigel Parkyn</strong></p>
+                <br>
+                <p>Edgemoorian Phonetic Tools is a practical utility designed to make passwords, codes, and alphanumeric text clear, readable, and unambiguous—whether spoken aloud, shared, or printed.</p>
+                <br>
+                <p>The app includes two powerful tools:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Alphanumeric to Phonetic Converter</li>
+                    <li>Password Phonetic Generator</li>
+                </ul>
+                <p>Both tools support 9 languages:</p>
+                <p>English, French, German, Spanish, Italian, Dutch, Portuguese, Russian, and Mandarin Chinese.</p>
+                <br>
+                <p><strong>General Features</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Multi-language support</li>
+                    <li>Alphanumeric text spoken aloud using phonetic words</li>
+                    <li>Copy, share, or generate QR code of phonetic output</li>
+                    <li>Night mode for comfortable use in low light</li>
+                    <li>Adjustable voice speed</li>
+                    <li>Clear handling of letters, numbers, and symbols</li>
+                </ul>
+                <br>
+                <p><strong>Alphanumeric to Phonetic Converter</strong></p>
+                <p>Have you ever needed to dictate or share a password and worried about confusing characters like I and l or 0 and O?</p>
+                <p>The Alphanumeric to Phonetic Converter removes that uncertainty.</p>
+                <p>This tool uses the NATO phonetic alphabet to convert any password, code, or text into a clear phonetic representation that can be spoken or printed without ambiguity.</p>
+                <p>Additionally, the optional 'Additional' text box allows users to convert email addresses, property addresses, postcodes, or any other alphanumeric strings into phonetic form. For multi-line content (such as property addresses with postcodes), separate lines with commas to ensure clear separation—ideal for situations like dictating information over the phone when pronunciation may be difficult to convey.</p>
+                <p><strong>Examples</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Uppercase → UPPER_SIERRA</li>
+                    <li>Lowercase → lower_sierra</li>
+                    <li>0 → “Zero”, O → “Oscar”</li>
+                    <li>1 → “One”, l → “Lima”, I → “India”</li>
+                    <li>All symbols are spoken clearly and distinctly</li>
+                </ul>
+                <br>
+                <p><strong>Password Phonetic Generator</strong></p>
+                <p>The Password Phonetic Generator creates strong, random passwords with:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>An instant phonetic version</li>
+                    <li>A built-in strength check</li>
+                </ul>
+                <p>When the “Create easy-to-remember readable pronounceable password” option is enabled, generated passwords will include:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>At least 1 uppercase letter</li>
+                    <li>1 lowercase letter</li>
+                    <li>1 number</li>
+                    <li>1 special character</li>
+                </ul>
+                <p>You can also add custom words or numbers (space- or comma-separated), which replace the standard phonetic words.</p>
+                <br>
+                <p><strong>Privacy & Safety</strong></p>
+                <p>Your privacy is important.</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>No data is collected</li>
+                    <li>No data is stored</li>
+                    <li>No data is shared</li>
+                    <li>No accounts, tracking, analytics, or internet connection required</li>
+                </ul>
+                <p>All processing happens locally on your device. Your passwords, text, and generated content never leave the app.</p>
+                <br>
+                <p><strong>Feedback & Contact</strong></p>
+                <p>If you have ideas, suggestions, or feature requests that could help improve the app, you’re welcome to get in touch.</p>
+                <p>Email: edgemoorian@gmail.com</p>
+                <p>Feedback is optional and greatly appreciated.</p>
+                <br>
+                <p>Building and maintaining this app takes time and resources.</p>
+                <p>If it’s useful to you, a small donation or "buy me a coffee" makes a big difference and helps keep it free. ❤️</p>
+                <br>
+                <p><strong>Disclaimer</strong></p>
+                <p>This app is intended as a utility tool to help clarify and generate alphanumeric text.</p>
+                <p>Users are responsible for how generated passwords and content are stored, shared, or used.</p>
+                <p>Edgemoorian Phonetic Tools does not provide security guarantees and should be used alongside standard best practices for password management.</p>
+           <br>
+<p style="font-size: 14px; color: #666; text-align: center; margin-top: 40px;">© 2026 Nigel Parkyn / Edgemoorian Software. All rights reserved.</p> </div>
+            <div id="about-content-fr" class="about-content">
+                <h1>Outils Phonétiques Edgemoorian</h1>
+                <p><strong>Développé par Edgemoorian Software</strong></p>
+                <p><strong>Développeur : Nigel Parkyn</strong></p>
+                <br>
+                <p>Outils Phonétiques Edgemoorian est un utilitaire pratique conçu pour rendre les mots de passe, codes et textes alphanumériques clairs, lisibles et sans ambiguïté — que ce soit prononcés à voix haute, partagés ou imprimés.</p>
+                <br>
+                <p>L'application inclut deux outils puissants :</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Convertisseur Alphanumérique en Phonétique</li>
+                    <li>Générateur de Mots de Passe Phonétiques</li>
+                </ul>
+                <p>Les deux outils prennent en charge 9 langues :</p>
+                <p>Anglais, Français, Allemand, Espagnol, Italien, Néerlandais, Portugais, Russe et Chinois Mandarin.</p>
+                <br>
+                <p><strong>Fonctionnalités Générales</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Support multi-langues</li>
+                    <li>Texte alphanumérique prononcé avec mots phonétiques</li>
+                    <li>Copier, partager ou générer un code QR de la sortie phonétique</li>
+                    <li>Mode nuit pour un usage confortable en faible luminosité</li>
+                    <li>Vitesse de voix réglable</li>
+                    <li>Gestion claire des lettres, chiffres et symboles</li>
+                </ul>
+                <br>
+                <p><strong>Convertisseur Alphanumérique en Phonétique</strong></p>
+                <p>Avez-vous déjà eu besoin de dicter ou partager un mot de passe et craint de confondre des caractères comme I et l ou 0 et O ?</p>
+                <p>Le Convertisseur Alphanumérique en Phonétique élimine cette incertitude.</p>
+                <p>Cet outil utilise l'alphabet phonétique NATO pour convertir tout mot de passe, code ou texte en représentation phonétique claire qui peut être prononcée ou imprimée sans ambiguïté.</p>
+                <p>De plus, la zone de texte optionnelle 'Additional' permet aux utilisateurs de convertir des adresses email, adresses postales, codes postaux ou toute autre chaîne alphanumérique en forme phonétique. Pour les contenus multi-lignes (comme les adresses postales avec codes postaux), séparez les lignes par des virgules pour assurer une séparation claire — idéal pour dicter des informations au téléphone quand la prononciation est difficile.</p>
+                <p><strong>Exemples</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Majuscule → UPPER_SIERRA</li>
+                    <li>Minuscule → lower_sierra</li>
+                    <li>0 → “Zéro”, O → “Oscar”</li>
+                    <li>1 → “Un”, l → “Lima”, I → “India”</li>
+                    <li>Tous les symboles sont prononcés clairement et distinctement</li>
+                </ul>
+                <br>
+                <p><strong>Générateur de Mots de Passe Phonétiques</strong></p>
+                <p>Le Générateur de Mots de Passe Phonétiques crée des mots de passe forts et aléatoires avec :</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Une version phonétique instantanée</li>
+                    <li>Une vérification de force intégrée</li>
+                </ul>
+                <p>Lorsque l'option « Créer un mot de passe facile à retenir et prononçable » est activée, les mots de passe incluront :</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Au moins 1 majuscule</li>
+                    <li>1 minuscule</li>
+                    <li>1 chiffre</li>
+                    <li>1 caractère spécial</li>
+                </ul>
+                <p>Vous pouvez aussi ajouter des mots ou nombres personnalisés (séparés par espaces ou virgules), qui remplacent les mots phonétiques standard.</p>
+                <br>
+                <p><strong>Confidentialité & Sécurité</strong></p>
+                <p>Votre confidentialité est importante.</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Aucune donnée n'est collectée</li>
+                    <li>Aucune donnée n'est stockée</li>
+                    <li>Aucune donnée n'est partagée</li>
+                    <li>Aucun compte, suivi, analyse ou connexion internet requis</li>
+                </ul>
+                <p>Tout le traitement se fait localement sur votre appareil. Vos mots de passe, textes et contenus générés ne quittent jamais l'application.</p>
+                <br>
+                <p><strong>Retour & Contact</strong></p>
+                <p>Si vous avez des idées, suggestions ou demandes de fonctionnalités pour améliorer l'application, n'hésitez pas à me contacter.</p>
+                <p>Email : edgemoorian@gmail.com</p>
+                <p>Les retours sont optionnels et grandement appréciés.</p>
+                <br>
+                <p>La création et la maintenance de cette application prennent du temps et des ressources.</p>
+                <p>Si elle vous est utile, un petit don ou "m'offrir un café" fait une grande différence et aide à la garder gratuite. ❤️</p>
+                <br>
+                <p><strong>Avertissement</strong></p>
+                <p>Cette application est un outil utilitaire pour clarifier et générer du texte alphanumérique.</p>
+                <p>Les utilisateurs sont responsables de la façon dont les mots de passe et contenus générés sont stockés, partagés ou utilisés.</p>
+                <p>Outils Phonétiques Edgemoorian ne fournit pas de garanties de sécurité et doit être utilisé avec les meilleures pratiques de gestion de mots de passe.</p>
+            <br>
+<p style="font-size: 14px; color: #666; text-align: center; margin-top: 40px;">© 2026 Nigel Parkyn / Edgemoorian Software. Tous droits réservés.</p></div>
+            <div id="about-content-de" class="about-content">
+                <h1>Edgemoorian Phonetische Tools</h1>
+                <p><strong>Entwickelt von Edgemoorian Software</strong></p>
+                <p><strong>Entwickler: Nigel Parkyn</strong></p>
+                <br>
+                <p>Edgemoorian Phonetische Tools ist ein praktisches Tool, das Passwörter, Codes und alphanumerischen Text klar, lesbar und eindeutig macht — ob gesprochen, geteilt oder gedruckt.</p>
+                <br>
+                <p>Die App enthält zwei leistungsstarke Tools:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Alphanumerisch-zu-Phonetisch-Konverter</li>
+                    <li>Passwort-Phonetik-Generator</li>
+                </ul>
+                <p>Beide Tools unterstützen 9 Sprachen:</p>
+                <p>Englisch, Französisch, Deutsch, Spanisch, Italienisch, Niederländisch, Portugiesisch, Russisch und Mandarin-Chinesisch.</p>
+                <br>
+                <p><strong>Allgemeine Funktionen</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Mehrsprachige Unterstützung</li>
+                    <li>Alphanumerischer Text wird mit phonetischen Wörtern vorgelesen</li>
+                    <li>Kopieren, teilen oder QR-Code der phonetischen Ausgabe erzeugen</li>
+                    <li>Nachtmodus für komfortable Nutzung bei wenig Licht</li>
+                    <li>Einstellbare Sprachgeschwindigkeit</li>
+                    <li>Klare Handhabung von Buchstaben, Zahlen und Symbolen</li>
+                </ul>
+                <br>
+                <p><strong>Alphanumerisch-zu-Phonetisch-Konverter</strong></p>
+                <p>Haben Sie schon einmal ein Passwort diktiert oder geteilt und sich Sorgen gemacht, Buchstaben wie I und l oder 0 und O zu verwechseln?</p>
+                <p>Der Alphanumerisch-zu-Phonetisch-Konverter beseitigt diese Unsicherheit.</p>
+                <p>Dieses Tool verwendet das NATO-Phoneticalphabet, um jedes Passwort, jeden Code oder Text in eine klare phonetische Darstellung umzuwandeln, die gesprochen oder gedruckt werden kann, ohne Missverständnisse.</p>
+                <p>Zusätzlich ermöglicht das optionale 'Additional'-Feld die Umwandlung von E-Mail-Adressen, Postadressen, Postleitzahlen oder anderen alphanumerischen Zeichenfolgen in phonetische Form. Für mehrzeilige Inhalte (wie Postadressen mit Postleitzahlen) trennen Sie die Zeilen mit Kommas, um klare Trennung zu gewährleisten — ideal für das Diktieren von Informationen am Telefon, wenn die Aussprache schwer zu vermitteln ist.</p>
+                <p><strong>Beispiele</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Großbuchstabe → UPPER_SIERRA</li>
+                    <li>Kleinbuchstabe → lower_sierra</li>
+                    <li>0 → “Zero”, O → “Oscar”</li>
+                    <li>1 → “One”, l → “Lima”, I → “India”</li>
+                    <li>Alle Symbole werden klar und deutlich ausgesprochen</li>
+                </ul>
+                <br>
+                <p><strong>Passwort-Phonetik-Generator</strong></p>
+                <p>Der Passwort-Phonetik-Generator erzeugt starke, zufällige Passwörter mit:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Einer sofortigen phonetischen Version</li>
+                    <li>Einer integrierten Stärkeprüfung</li>
+                </ul>
+                <p>Wenn die Option „Leicht merkbares aussprechbares Passwort erstellen“ aktiviert ist, enthalten die generierten Passwörter:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Mindestens 1 Großbuchstabe</li>
+                    <li>1 Kleinbuchstabe</li>
+                    <li>1 Zahl</li>
+                    <li>1 Sonderzeichen</li>
+                </ul>
+                <p>Sie können auch benutzerdefinierte Wörter oder Zahlen hinzufügen (durch Leerzeichen oder Kommas getrennt), die die standard phonetischen Wörter ersetzen.</p>
+                <br>
+                <p><strong>Privatsphäre & Sicherheit</strong></p>
+                <p>Ihre Privatsphäre ist wichtig.</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Keine Daten werden gesammelt</li>
+                    <li>Keine Daten werden gespeichert</li>
+                    <li>Keine Daten werden geteilt</li>
+                    <li>Keine Accounts, Tracking, Analysen oder Internetverbindung erforderlich</li>
+                </ul>
+                <p>Alle Verarbeitung erfolgt lokal auf Ihrem Gerät. Ihre Passwörter, Texte und generierten Inhalte verlassen die App nie.</p>
+                <br>
+                <p><strong>Feedback & Kontakt</strong></p>
+                <p>Wenn Sie Ideen, Vorschläge oder Feature-Wünsche haben, die die App verbessern könnten, kontaktieren Sie mich gerne.</p>
+                <p>Email: edgemoorian@gmail.com</p>
+                <p>Feedback ist optional und wird sehr geschätzt.</p>
+                <br>
+                <p>Die Entwicklung und Pflege dieser App erfordert Zeit und Ressourcen.</p>
+                <p>Wenn sie Ihnen nützlich ist, würde eine kleine Spende oder "Kauf mir einen Kaffee" einen großen Unterschied machen und helfen, sie kostenlos zu halten. ❤️</p>
+                <br>
+                <p><strong>Haftungsausschluss</strong></p>
+                <p>Diese App ist als Utility-Tool gedacht, um alphanumerischen Text zu klären und zu generieren.</p>
+                <p>Benutzer sind verantwortlich für die Speicherung, Teilen oder Nutzung generierter Passwörter und Inhalte.</p>
+                <p>Edgemoorian Phonetische Tools bietet keine Sicherheitsgarantien und sollte mit den besten Standardpraktiken für Passwortmanagement verwendet werden.</p>
+          <br>
+<p style="font-size: 14px; color: #666; text-align: center; margin-top: 40px;">© 2026 Nigel Parkyn / Edgemoorian Software. Alle Rechte vorbehalten.</p>  </div>
+            <div id="about-content-es" class="about-content">
+                <h1>Herramientas Fonéticas Edgemoorian</h1>
+                <p><strong>Desarrollado por Edgemoorian Software</strong></p>
+                <p><strong>Desarrollador: Nigel Parkyn</strong></p>
+                <br>
+                <p>Herramientas Fonéticas Edgemoorian es una utilidad práctica diseñada para hacer que las contraseñas, códigos y texto alfanumérico sean claros, legibles y sin ambigüedad — ya sea hablado, compartido o impreso.</p>
+                <br>
+                <p>La aplicación incluye dos herramientas poderosas:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Convertidor Alfanumérico a Fonético</li>
+                    <li>Generador de Contraseñas Fonéticas</li>
+                </ul>
+                <p>Ambas herramientas admiten 9 idiomas:</p>
+                <p>Inglés, Francés, Alemán, Español, Italiano, Holandés, Portugués, Ruso y Chino Mandarín.</p>
+                <br>
+                <p><strong>Características Generales</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Soporte multiidioma</li>
+                    <li>Texto alfanumérico pronunciado con palabras fonéticas</li>
+                    <li>Copiar, compartir o generar código QR de la salida fonética</li>
+                    <li>Modo noche para uso cómodo en poca luz</li>
+                    <li>Velocidad de voz ajustable</li>
+                    <li>Manejo claro de letras, números y símbolos</li>
+                </ul>
+                <br>
+                <p><strong>Convertidor Alfanumérico a Fonético</strong></p>
+                <p>¿Alguna vez ha necesitado dictar o compartir una contraseña y le preocupaba confundir caracteres como I y l o 0 y O?</p>
+                <p>El Convertidor Alfanumérico a Fonético elimina esa incertidumbre.</p>
+                <p>Esta herramienta utiliza el alfabeto fonético NATO para convertir cualquier contraseña, código o texto en una representación fonética clara que puede ser pronunciada o impresa sin ambigüedad.</p>
+                <p>Además, el cuadro de texto opcional 'Additional' permite a los usuarios convertir direcciones de correo electrónico, direcciones postales, códigos postales o cualquier otra cadena alfanumérica en forma fonética. Para contenido multi-línea (como direcciones postales con códigos postales), separe las líneas con comas para asegurar una separación clara — ideal para situaciones como dictar información por teléfono cuando la pronunciación puede ser difícil de transmitir.</p>
+                <p><strong>Ejemplos</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Mayúscula → UPPER_SIERRA</li>
+                    <li>Minúscula → lower_sierra</li>
+                    <li>0 → “Cero”, O → “Oscar”</li>
+                    <li>1 → “Uno”, l → “Lima”, I → “India”</li>
+                    <li>Todos los símbolos se pronuncian clara y distintamente</li>
+                </ul>
+                <br>
+                <p><strong>Generador de Contraseñas Fonéticas</strong></p>
+                <p>El Generador de Contraseñas Fonéticas crea contraseñas fuertes y aleatorias con:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Una versión fonética instantánea</li>
+                    <li>Una comprobación de fuerza integrada</li>
+                </ul>
+                <p>Cuando la opción “Crear contraseña fácil de recordar y pronunciable” está activada, las contraseñas generadas incluirán:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Al menos 1 letra mayúscula</li>
+                    <li>1 letra minúscula</li>
+                    <li>1 número</li>
+                    <li>1 carácter especial</li>
+                </ul>
+                <p>También puede añadir palabras o números personalizados (separados por espacios o comas), que reemplazan las palabras fonéticas estándar.</p>
+                <br>
+                <p><strong>Privacidad & Seguridad</strong></p>
+                <p>Su privacidad es importante.</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>No se recopilan datos</li>
+                    <li>No se almacenan datos</li>
+                    <li>No se comparten datos</li>
+                    <li>No se requieren cuentas, seguimiento, análisis o conexión a internet</li>
+                </ul>
+                <p>Todo el procesamiento se realiza localmente en su dispositivo. Sus contraseñas, texto y contenido generado nunca salen de la aplicación.</p>
+                <br>
+                <p><strong>Comentarios & Contacto</strong></p>
+                <p>Si tiene ideas, sugerencias o solicitudes de características que podrían ayudar a mejorar la aplicación, no dude en ponerse en contacto.</p>
+                <p>Email: edgemoorian@gmail.com</p>
+                <p>Los comentarios son opcionales y muy apreciados.</p>
+                <br>
+                <p>Crear y mantener esta aplicación requiere tiempo y recursos.</p>
+                <p>Si le resulta útil, una pequeña donación o "comprarme un café" marca una gran diferencia y ayuda a mantenerla gratuita. ❤️</p>
+                <br>
+                <p><strong>Descargo de responsabilidad</strong></p>
+                <p>Esta aplicación está destinada a ser una herramienta utilitaria para aclarar y generar texto alfanumérico.</p>
+                <p>Los usuarios son responsables de cómo se almacenan, comparten o utilizan las contraseñas y contenido generado.</p>
+                <p>Herramientas Fonéticas Edgemoorian no proporciona garantías de seguridad y debe utilizarse junto con las mejores prácticas estándar para la gestión de contraseñas.</p>
+            <br>
+<p style="font-size: 14px; color: #666; text-align: center; margin-top: 40px;">© 2026 Nigel Parkyn / Edgemoorian Software. Todos los derechos reservados.</p></div>
+            <div id="about-content-it" class="about-content">
+                <h1>Strumenti Fonetici Edgemoorian</h1>
+                <p><strong>Sviluppato da Edgemoorian Software</strong></p>
+                <p><strong>Sviluppatore: Nigel Parkyn</strong></p>
+                <br>
+                <p>Strumenti Fonetici Edgemoorian è un'utilità pratica progettata per rendere password, codici e testo alfanumerico chiari, leggibili e non ambigui — sia parlati, condivisi o stampati.</p>
+                <br>
+                <p>L'app include due potenti strumenti:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Convertitore Alfanumerico in Fonetico</li>
+                    <li>Generatore di Password Fonetiche</li>
+                </ul>
+                <p>Entrambi gli strumenti supportano 9 lingue:</p>
+                <p>Inglese, Francese, Tedesco, Spagnolo, Italiano, Olandese, Portoghese, Russo e Cinese Mandarino.</p>
+                <br>
+                <p><strong>Caratteristiche Generali</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Supporto multi-lingua</li>
+                    <li>Testo alfanumerico pronunciato con parole fonetiche</li>
+                    <li>Copia, condividi o genera codice QR dell'output fonetico</li>
+                    <li>Modalità notte per uso confortevole in scarsa illuminazione</li>
+                    <li>Velocità vocale regolabile</li>
+                    <li>Gestione chiara di lettere, numeri e simboli</li>
+                </ul>
+                <br>
+                <p><strong>Convertitore Alfanumerico in Fonetico</strong></p>
+                <p>Hai mai dovuto dettare o condividere una password e ti sei preoccupato di confondere caratteri come I e l o 0 e O?</p>
+                <p>Il Convertitore Alfanumerico in Fonetico elimina questa incertezza.</p>
+                <p>Questo strumento utilizza l'alfabeto fonetico NATO per convertire qualsiasi password, codice o testo in una rappresentazione fonetica chiara che può essere pronunciata o stampata senza ambiguità.</p>
+                <p>Inoltre, la casella di testo opzionale 'Additional' consente agli utenti di convertire indirizzi email, indirizzi postali, codici postali o qualsiasi altra stringa alfanumerica in forma fonetica. Per contenuti multi-linea (come indirizzi postali con codici postali), separare le linee con virgole per garantire una separazione chiara — ideale per situazioni come dettare informazioni al telefono quando la pronuncia può essere difficile da trasmettere.</p>
+                <p><strong>Esempi</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Maiuscola → UPPER_SIERRA</li>
+                    <li>Minuscola → lower_sierra</li>
+                    <li>0 → “Zero”, O → “Oscar”</li>
+                    <li>1 → “Uno”, l → “Lima”, I → “India”</li>
+                    <li>Tutti i simboli sono pronunciati chiaramente e distintamente</li>
+                </ul>
+                <br>
+                <p><strong>Generatore di Password Fonetiche</strong></p>
+                <p>Il Generatore di Password Fonetiche crea password forti e casuali con:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Una versione fonetica istantanea</li>
+                    <li>Un controllo di forza integrato</li>
+                </ul>
+                <p>Quando l'opzione “Crea password facile da ricordare e pronunciabile” è abilitata, le password generate includeranno:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Almeno 1 lettera maiuscola</li>
+                    <li>1 lettera minuscola</li>
+                    <li>1 numero</li>
+                    <li>1 carattere speciale</li>
+                </ul>
+                <p>Puoi anche aggiungere parole o numeri personalizzati (separati da spazi o virgole), che sostituiscono le parole fonetiche standard.</p>
+                <br>
+                <p><strong>Privacy & Sicurezza</strong></p>
+                <p>La tua privacy è importante.</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Nessun dato viene raccolto</li>
+                    <li>Nessun dato viene memorizzato</li>
+                    <li>Nessun dato viene condiviso</li>
+                    <li>Nessun account, tracciamento, analisi o connessione internet richiesta</li>
+                </ul>
+                <p>Tutto il processamento avviene localmente sul tuo dispositivo. Le tue password, testi e contenuti generati non lasciano mai l'app.</p>
+                <br>
+                <p><strong>Feedback & Contatto</strong></p>
+                <p>Se hai idee, suggerimenti o richieste di funzionalità che potrebbero aiutare a migliorare l'app, sei benvenuto a contattarmi.</p>
+                <p>Email: edgemoorian@gmail.com</p>
+                <p>I feedback sono opzionali e molto apprezzati.</p>
+                <br>
+                <p>Costruire e mantenere questa app richiede tempo e risorse.</p>
+                <p>Se ti è utile, una piccola donazione o "offrimi un caffè" fa una grande differenza e aiuta a mantenerla gratuita. ❤️</p>
+                <br>
+                <p><strong>Disclaimer</strong></p>
+                <p>Questa app è intesa come uno strumento utilitario per chiarire e generare testo alfanumerico.</p>
+                <p>Gli utenti sono responsabili di come le password e i contenuti generati vengono memorizzati, condivisi o utilizzati.</p>
+                <p>Strumenti Fonetici Edgemoorian non fornisce garanzie di sicurezza e dovrebbe essere utilizzato insieme alle migliori pratiche standard per la gestione delle password.</p>
+           <br>
+<p style="font-size: 14px; color: #666; text-align: center; margin-top: 40px;">© 2026 Nigel Parkyn / Edgemoorian Software. Tutti i diritti riservati.</p> </div>
+            <div id="about-content-nl" class="about-content">
+                <h1>Edgemoorian Fonetische Tools</h1>
+                <p><strong>Ontwikkeld door Edgemoorian Software</strong></p>
+                <p><strong>Ontwikkelaar: Nigel Parkyn</strong></p>
+                <br>
+                <p>Edgemoorian Fonetische Tools is een praktisch hulpmiddel ontworpen om wachtwoorden, codes en alfanumerieke tekst duidelijk, leesbaar en ondubbelzinnig te maken — of ze nu hardop worden uitgesproken, gedeeld of afgedrukt.</p>
+                <br>
+                <p>De app bevat twee krachtige tools:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Alfanumeriek naar Fonetisch Converter</li>
+                    <li>Wachtwoord Fonetische Generator</li>
+                </ul>
+                <p>Beide tools ondersteunen 9 talen:</p>
+                <p>Engels, Frans, Duits, Spaans, Italiaans, Nederlands, Portugees, Russisch en Mandarijn Chinees.</p>
+                <br>
+                <p><strong>Algemene Functies</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Meertalige ondersteuning</li>
+                    <li>Alfanumerieke tekst hardop uitgesproken met fonetische woorden</li>
+                    <li>Kopiëren, delen of QR-code genereren van fonetische output</li>
+                    <li>Nachtmodus voor comfortabel gebruik in weinig licht</li>
+                    <li>Aanpasbare stemsnelheid</li>
+                    <li>Duidelijke behandeling van letters, cijfers en symbolen</li>
+                </ul>
+                <br>
+                <p><strong>Alfanumeriek naar Fonetisch Converter</strong></p>
+                <p>Heeft u ooit een wachtwoord moeten dicteren of delen en zich zorgen gemaakt over verwarring tussen karakters zoals I en l of 0 en O?</p>
+                <p>De Alfanumeriek naar Fonetisch Converter elimineert die onzekerheid.</p>
+                <p>Dit tool gebruikt het NATO fonetisch alfabet om elk wachtwoord, code of tekst om te zetten in een duidelijke fonetische weergave die kan worden uitgesproken of afgedrukt zonder ambiguïteit.</p>
+                <p>Daarnaast stelt het optionele 'Additional' tekstvak gebruikers in staat om e-mailadressen, postadressen, postcodes of andere alfanumerieke strings om te zetten in fonetische vorm. Voor multi-line inhoud (zoals postadressen met postcodes), scheid de lijnen met komma's om duidelijke scheiding te garanderen — ideaal voor situaties zoals het dicteren van informatie over de telefoon wanneer uitspraak moeilijk over te brengen is.</p>
+                <p><strong>Voorbeelden</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Hoofdletter → UPPER_SIERRA</li>
+                    <li>Kleine letter → lower_sierra</li>
+                    <li>0 → “Nul”, O → “Oscar”</li>
+                    <li>1 → “Een”, l → “Lima”, I → “India”</li>
+                    <li>Alle symbolen worden duidelijk en onderscheidend uitgesproken</li>
+                </ul>
+                <br>
+                <p><strong>Wachtwoord Fonetische Generator</strong></p>
+                <p>De Wachtwoord Fonetische Generator creëert sterke, willekeurige wachtwoorden met:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Een instant fonetische versie</li>
+                    <li>Een ingebouwde sterktecheck</li>
+                </ul>
+                <p>Wanneer de optie “Creëer gemakkelijk te onthouden uitspreekbaar wachtwoord” is ingeschakeld, zullen gegenereerde wachtwoorden bevatten:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Minstens 1 hoofdletter</li>
+                    <li>1 kleine letter</li>
+                    <li>1 cijfer</li>
+                    <li>1 speciaal karakter</li>
+                </ul>
+                <p>U kunt ook aangepaste woorden of cijfers toevoegen (gescheiden door spaties of komma's), die de standaard fonetische woorden vervangen.</p>
+                <br>
+                <p><strong>Privacy & Veiligheid</strong></p>
+                <p>Uw privacy is belangrijk.</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Geen gegevens worden verzameld</li>
+                    <li>Geen gegevens worden opgeslagen</li>
+                    <li>Geen gegevens worden gedeeld</li>
+                    <li>Geen accounts, tracking, analytics of internetverbinding vereist</li>
+                </ul>
+                <p>Alle verwerking gebeurt lokaal op uw apparaat. Uw wachtwoorden, tekst en gegenereerde inhoud verlaten de app nooit.</p>
+                <br>
+                <p><strong>Feedback & Contact</strong></p>
+                <p>Als u ideeën, suggesties of functieaanvragen heeft die de app kunnen verbeteren, neem dan gerust contact op.</p>
+                <p>Email: edgemoorian@gmail.com</p>
+                <p>Feedback is optioneel en wordt zeer gewaardeerd.</p>
+                <br>
+                <p>Het bouwen en onderhouden van deze app kost tijd en middelen.</p>
+                <p>Als het nuttig voor u is, maakt een kleine donatie of "koop me een koffie" een groot verschil en helpt het gratis te blijven. ❤️</p>
+                <br>
+                <p><strong>Disclaimer</strong></p>
+                <p>Deze app is bedoeld als een utility tool om alfanumerieke tekst te verduidelijken en te genereren.</p>
+                <p>Gebruikers zijn verantwoordelijk voor hoe gegenereerde wachtwoorden en inhoud worden opgeslagen, gedeeld of gebruikt.</p>
+                <p>Edgemoorian Fonetische Tools biedt geen beveiligingsgaranties en moet worden gebruikt naast standaard beste praktijken voor wachtwoordbeheer.</p>
+            <br>
+<p style="font-size: 14px; color: #666; text-align: center; margin-top: 40px;">© 2026 Nigel Parkyn / Edgemoorian Software. Alle rechten voorbehouden.</p></div>
+            <div id="about-content-pt" class="about-content">
+                <h1>Ferramentas Fonéticas Edgemoorian</h1>
+                <p><strong>Desenvolvido por Edgemoorian Software</strong></p>
+                <p><strong>Desenvolvedor: Nigel Parkyn</strong></p>
+                <br>
+                <p>Ferramentas Fonéticas Edgemoorian é uma utilidade prática projetada para tornar senhas, códigos e texto alfanumérico claros, legíveis e sem ambiguidade — seja falado, compartilhado ou impresso.</p>
+                <br>
+                <p>O aplicativo inclui duas ferramentas poderosas:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Conversor Alfanumérico para Fonético</li>
+                    <li>Gerador de Senhas Fonéticas</li>
+                </ul>
+                <p>Ambas as ferramentas suportam 9 idiomas:</p>
+                <p>Inglês, Francês, Alemão, Espanhol, Italiano, Holandês, Português, Russo e Chinês Mandarim.</p>
+                <br>
+                <p><strong>Recursos Gerais</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Suporte multi-idioma</li>
+                    <li>Texto alfanumérico falado com palavras fonéticas</li>
+                    <li>Copiar, compartilhar ou gerar código QR da saída fonética</li>
+                    <li>Modo noturno para uso confortável em pouca luz</li>
+                    <li>Velocidade de voz ajustável</li>
+                    <li>Manipulação clara de letras, números e símbolos</li>
+                </ul>
+                <br>
+                <p><strong>Conversor Alfanumérico para Fonético</strong></p>
+                <p>Você já precisou ditar ou compartilhar uma senha e se preocupou em confundir caracteres como I e l ou 0 e O?</p>
+                <p>O Conversor Alfanumérico para Fonético elimina essa incerteza.</p>
+                <p>Esta ferramenta usa o alfabeto fonético NATO para converter qualquer senha, código ou texto em uma representação fonética clara que pode ser falada ou impressa sem ambiguidade.</p>
+                <p>Além disso, a caixa de texto opcional 'Additional' permite aos usuários converter endereços de e-mail, endereços postais, códigos postais ou qualquer outra string alfanumérica em forma fonética. Para conteúdo multi-linha (como endereços postais com códigos postais), separe as linhas com vírgulas para garantir separação clara — ideal para situações como ditar informações por telefone quando a pronúncia pode ser difícil de transmitir.</p>
+                <p><strong>Exemplos</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Maiúscula → UPPER_SIERRA</li>
+                    <li>Minúscula → lower_sierra</li>
+                    <li>0 → “Zero”, O → “Oscar”</li>
+                    <li>1 → “Um”, l → “Lima”, I → “India”</li>
+                    <li>Todos os símbolos são falados claramente e distintamente</li>
+                </ul>
+                <br>
+                <p><strong>Gerador de Senhas Fonéticas</strong></p>
+                <p>O Gerador de Senhas Fonéticas cria senhas fortes e aleatórias com:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Uma versão fonética instantânea</li>
+                    <li>Uma verificação de força integrada</li>
+                </ul>
+                <p>Quando a opção “Criar senha fácil de lembrar e pronunciável” está ativada, as senhas geradas incluirão:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Pelo menos 1 letra maiúscula</li>
+                    <li>1 letra minúscula</li>
+                    <li>1 número</li>
+                    <li>1 caractere especial</li>
+                </ul>
+                <p>Você também pode adicionar palavras ou números personalizados (separados por espaços ou vírgulas), que substituem as palavras fonéticas padrão.</p>
+                <br>
+                <p><strong>Privacidade & Segurança</strong></p>
+                <p>Sua privacidade é importante.</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Nenhum dado é coletado</li>
+                    <li>Nenhum dado é armazenado</li>
+                    <li>Nenhum dado é compartilhado</li>
+                    <li>Nenhum conta, rastreamento, análise ou conexão com internet necessária</li>
+                </ul>
+                <p>Todo o processamento acontece localmente no seu dispositivo. Suas senhas, texto e conteúdo gerado nunca saem do aplicativo.</p>
+                <br>
+                <p><strong>Feedback & Contato</strong></p>
+                <p>Se você tiver ideias, sugestões ou pedidos de recursos que possam ajudar a melhorar o aplicativo, sinta-se à vontade para entrar em contato.</p>
+                <p>Email: edgemoorian@gmail.com</p>
+                <p>Feedback é opcional e muito apreciado.</p>
+                <br>
+                <p>Construir e manter este aplicativo leva tempo e recursos.</p>
+                <p>Se for útil para você, uma pequena doação ou "me compre um café" faz uma grande diferença e ajuda a mantê-lo gratuito. ❤️</p>
+                <br>
+                <p><strong>Disclaimer</strong></p>
+                <p>Este aplicativo é destinado a ser uma ferramenta utilitária para esclarecer e gerar texto alfanumérico.</p>
+                <p>Os usuários são responsáveis por como as senhas e conteúdo gerados são armazenados, compartilhados ou usados.</p>
+                <p>Ferramentas Fonéticas Edgemoorian não fornece garantias de segurança e deve ser usado junto com as melhores práticas padrão para gerenciamento de senhas.</p>
+            <br>
+<p style="font-size: 14px; color: #666; text-align: center; margin-top: 40px;">© 2026 Nigel Parkyn / Edgemoorian Software. Todos os direitos reservados.</p></div>
+            <div id="about-content-ru" class="about-content">
+                <h1>Инструменты Фонетические Edgemoorian</h1>
+                <p><strong>Разработано Edgemoorian Software</strong></p>
+                <p><strong>Разработчик: Nigel Parkyn</strong></p>
+                <br>
+                <p>Инструменты Фонетические Edgemoorian — это практический инструмент, предназначенный для того, чтобы делать пароли, коды и алфавитно-цифровой текст ясными, читаемыми и однозначными — будь то произнесённые вслух, общие или напечатанные.</p>
+                <br>
+                <p>Приложение включает два мощных инструмента:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Преобразователь Алфавитно-цифровой в Фонетический</li>
+                    <li>Генератор Фонетических Паролей</li>
+                </ul>
+                <p>Оба инструмента поддерживают 9 языков:</p>
+                <p>Английский, Французский, Немецкий, Испанский, Итальянский, Нидерландский, Португальский, Русский и Мандаринский Китайский.</p>
+                <br>
+                <p><strong>Общие Функции</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Поддержка нескольких языков</li>
+                    <li>Алфавитно-цифровой текст произносится с использованием фонетических слов</li>
+                    <li>Копировать, поделиться или сгенерировать QR-код фонетического вывода</li>
+                    <li>Ночной режим для комфортного использования в условиях низкой освещённости</li>
+                    <li>Регулируемая скорость голоса</li>
+                    <li>Чёткая обработка букв, цифр и символов</li>
+                </ul>
+                <br>
+                <p><strong>Преобразователь Алфавитно-цифровой в Фонетический</strong></p>
+                <p>Вам когда-нибудь приходилось диктовать или делить пароль и беспокоиться о путанице символов вроде I и l или 0 и O?</p>
+                <p>Преобразователь Алфавитно-цифровой в Фонетический устраняет эту неопределённость.</p>
+                <p>Этот инструмент использует фонетический алфавит NATO для преобразования любого пароля, кода или текста в ясное фонетическое представление, которое можно произнести или напечатать без неоднозначности.</p>
+                <p>Кроме того, опциональное поле текста 'Additional' позволяет пользователям преобразовывать адреса электронной почты, почтовые адреса, почтовые индексы или любые другие алфавитно-цифровые строки в фонетическую форму. Для многострочного контента (например, почтовых адресов с индексами), разделяйте строки запятыми для обеспечения чёткого разделения — идеально для ситуаций вроде диктовки информации по телефону, когда произношение может быть трудно передать.</p>
+                <p><strong>Примеры</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Заглавная буква → UPPER_SIERRA</li>
+                    <li>Строчная буква → lower_sierra</li>
+                    <li>0 → “Ноль”, O → “Oscar”</li>
+                    <li>1 → “Один”, l → “Lima”, I → “India”</li>
+                    <li>Все символы произносятся ясно и отчётливо</li>
+                </ul>
+                <br>
+                <p><strong>Генератор Фонетических Паролей</strong></p>
+                <p>Генератор Фонетических Паролей создаёт сильные, случайные пароли с:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Мгновенной фонетической версией</li>
+                    <li>Встроенной проверкой силы</li>
+                </ul>
+                <p>Когда включена опция «Создать легко запоминаемый произносимый пароль», генерируемые пароли будут включать:</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>По крайней мере 1 заглавную букву</li>
+                    <li>1 строчную букву</li>
+                    <li>1 цифру</li>
+                    <li>1 специальный символ</li>
+                </ul>
+                <p>Вы также можете добавить пользовательские слова или числа (разделённые пробелами или запятыми), которые заменяют стандартные фонетические слова.</p>
+                <br>
+                <p><strong>Конфиденциальность & Безопасность</strong></p>
+                <p>Ваша конфиденциальность важна.</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>Данные не собираются</li>
+                    <li>Данные не хранятся</li>
+                    <li>Данные не передаются</li>
+                    <li>Не требуются аккаунты, отслеживание, аналитика или подключение к интернету</li>
+                </ul>
+                <p>Все обработка происходит локально на вашем устройстве. Ваши пароли, текст и сгенерированный контент никогда не покидают приложение.</p>
+                <br>
+                <p><strong>Обратная связь & Контакт</strong></p>
+                <p>Если у вас есть идеи, предложения или запросы функций, которые могут помочь улучшить приложение, добро пожаловать к контакту.</p>
+                <p>Email: edgemoorian@gmail.com</p>
+                <p>Обратная связь опциональна и очень ценится.</p>
+                <br>
+                <p>Создание и поддержка этого приложения требует времени и ресурсов.</p>
+                <p>Если оно полезно для вас, небольшое пожертвование или "купить мне кофе" имеет большое значение и помогает держать его бесплатным. ❤️</p>
+                <br>
+                <p><strong>Отказ от ответственности</strong></p>
+                <p>Это приложение предназначено как утилита для уточнения и генерации алфавитно-цифрового текста.</p>
+                <p>Пользователи несут ответственность за хранение, обмен или использование сгенерированных паролей и контента.</p>
+                <p>Инструменты Фонетические Edgemoorian не предоставляет гарантий безопасности и должен использоваться вместе со стандартными лучшими практиками управления паролями.</p>
+            <br>
+<p style="font-size: 14px; color: #666; text-align: center; margin-top: 40px;">© 2026 Nigel Parkyn / Edgemoorian Software. Все права защищены.</p></div>
+            <div id="about-content-zh" class="about-content">
+                <h1>Edgemoorian 音标工具</h1>
+                <p><strong>由 Edgemoorian Software 开发</strong></p>
+                <p><strong>开发者：Nigel Parkyn</strong></p>
+                <br>
+                <p>Edgemoorian 音标工具是一个实用工具，旨在使密码、代码和字母数字文本清晰、可读且无歧义 — 无论口头、共享还是打印。</p>
+                <br>
+                <p>该应用包括两个强大的工具：</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>字母数字到音标转换器</li>
+                    <li>密码音标生成器</li>
+                </ul>
+                <p>两个工具均支持 9 种语言：</p>
+                <p>英语、法语、德语、西班牙语、意大利语、荷兰语、葡萄牙语、俄语和普通话。</p>
+                <br>
+                <p><strong>通用功能</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>多语言支持</li>
+                    <li>使用音标单词大声朗读字母数字文本</li>
+                    <li>复制、分享或生成音标输出的二维码</li>
+                    <li>夜间模式，适合低光环境舒适使用</li>
+                    <li>可调节语音速度</li>
+                    <li>清晰处理字母、数字和符号</li>
+                </ul>
+                <br>
+                <p><strong>字母数字到音标转换器</strong></p>
+                <p>您是否曾经需要口述或分享密码，并担心混淆像 I 和 l 或 0 和 O 这样的字符？</p>
+                <p>字母数字到音标转换器消除了这种不确定性。</p>
+                <p>此工具使用北约音标字母表将任何密码、代码或文本转换为清晰的音标表示，可以口述或打印而无歧义。</p>
+                <p>此外，可选的 'Additional' 文本框允许用户将电子邮件地址、邮政地址、邮编或任何其他字母数字字符串转换为音标形式。对于多行内容（如带邮编的邮政地址），用逗号分隔行以确保清晰分离 — 理想用于电话口述信息时发音难以传达的情况。</p>
+                <p><strong>示例</strong></p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>大写 → UPPER_SIERRA</li>
+                    <li>小写 → lower_sierra</li>
+                    <li>0 → “零”， O → “Oscar”</li>
+                    <li>1 → “一”， l → “Lima”， I → “India”</li>
+                    <li>所有符号都清晰且独特地发音</li>
+                </ul>
+                <br>
+                <p><strong>密码音标生成器</strong></p>
+                <p>密码音标生成器创建强随机密码，并带有：</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>即时音标版本</li>
+                    <li>内置强度检查</li>
+                </ul>
+                <p>当启用“创建易记易读可发音密码”选项时，生成的密码将包括：</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>至少 1 个大写字母</li>
+                    <li>1 个小写字母</li>
+                    <li>1 个数字</li>
+                    <li>1 个特殊字符</li>
+                </ul>
+                <p>您还可以添加自定义单词或数字（用空格或逗号分隔），这些将替换标准音标单词。</p>
+                <br>
+                <p><strong>隐私 & 安全</strong></p>
+                <p>您的隐私很重要。</p>
+                <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 18px;">
+                    <li>不收集数据</li>
+                    <li>不存储数据</li>
+                    <li>不分享数据</li>
+                    <li>无需账户、跟踪、分析或互联网连接</li>
+                </ul>
+                <p>所有处理均在您的设备本地进行。您的密码、文本和生成的内容永远不会离开应用。</p>
+                <br>
+                <p><strong>反馈 & 联系</strong></p>
+                <p>如果您有想法、建议或功能请求可以帮助改进应用，欢迎联系。</p>
+                <p>Email: edgemoorian@gmail.com</p>
+                <p>反馈是可选的，非常感谢。</p>
+                <br>
+                <p>构建和维护此应用需要时间和资源。</p>
+                <p>如果对您有用，小额捐赠或“请我喝杯咖啡”将产生很大影响，并帮助保持免费。 ❤️</p>
+                <br>
+                <p><strong>免责声明</strong></p>
+                <p>此应用旨在作为实用工具来澄清和生成字母数字文本。</p>
+                <p>用户负责生成的密码和内容如何存储、分享或使用。</p>
+                <p>Edgemoorian 音标工具不提供安全保证，应与标准最佳密码管理实践一起使用。</p>
+           <br>
+<p style="font-size: 14px; color: #666; text-align: center; margin-top: 40px;">© 2026 Nigel Parkyn / Edgemoorian Software. 版权所有。</p> </div>
+            <button class="back-btn" id="about-back">← Back to Menu</button>
+        </div>
+    </div>
+    <div id="converter-app">
+        <div class="container">
+            <button id="theme-toggle">🌙</button>
+            <h1 id="converter-title">Alphanumeric To Phonetic Converter</h1>
+            <div style="margin: 15px 0;">
+                <input type="checkbox" id="converter-add-username">
+                <label for="converter-add-username" class="checkbox-label" id="converter-username-label">Add a username</label>
+                <input type="text" id="converter-username-input" placeholder="Enter username (e.g. nigel)">
+            </div>
+            <div style="margin: 15px 0;">
+                <input type="checkbox" id="converter-add-password">
+                <label for="converter-add-password" class="checkbox-label" id="converter-password-label">Add a password</label>
+                <input type="text" id="converter-password-input" placeholder="Enter password (e.g. dtu5)">
+            </div>
+            <textarea id="convert-input" placeholder="Type or paste additional text/code here (optional)" autofocus></textarea>
+            <div id="phonetic-display"></div>
+            <div class="buttons">
+                <div class="main-buttons">
+                    <button id="copy-button">📋 Copy</button>
+                    <button id="share-converter">📤 Share</button>
+                    <button id="qr-converter">🔳 QR Code</button>
+                </div>
+                <div class="expanded-copy" id="converter-expanded-copy">
+                    <button id="copy-username-conv">Username</button>
+                    <button id="copy-username-phonetic-conv">U. Phonetic</button>
+                    <button id="copy-password-conv">Password</button>
+                    <button id="copy-password-phonetic-conv">P. Phonetic</button>
+                    <button id="copy-additional-conv">Additional</button>
+                    <button id="copy-additional-phonetic-conv">A. Phonetic</button>
+                    <button id="copy-all-conv">Copy All</button>
+                </div>
+                <div class="speech-controls-row">
+                    <button id="convert-speak">🔊 Speak Aloud</button>
+                    <button id="converter-pause-resume">⏸ Pause</button>
+                    <button id="converter-stop">⏹ Stop All</button>
+                    <div class="speed-control">
+                        <label id="converter-voice-speed-label">Voice Speed:</label>
+                        <input type="range" id="converter-speed" min="0.3" max="2" step="0.1" value="1">
+                    </div>
+                </div>
+                <button class="clear-btn" id="clear-converter">Clear All</button>
+            </div>
+            <button class="back-btn" id="converter-back">← Back to Menu</button>
+        </div>
+    </div>
+    <div id="generator-app">
+        <div class="container">
+            <button id="theme-toggle">🌙</button>
+            <h1 id="generator-title">Password Phonetic Generator</h1>
+            <label id="pass-length-label">Password Length:</label>
+            <input type="number" id="pass-length" value="16" min="8" max="32">
+            <div style="margin: 15px 0;">
+                <input type="checkbox" id="generator-add-username">
+                <label for="generator-add-username" class="checkbox-label" id="generator-username-label">Add a username (separate from password)</label>
+                <input type="text" id="generator-username-input" placeholder="Enter username (e.g. nigel)">
+            </div>
+            <div style="margin: 15px 0;">
+                <input type="checkbox" id="easy-mode">
+                <label for="easy-mode" class="checkbox-label" id="easy-mode-label">Create easy-to-remember readable pronounceable password</label>
+            </div>
+            <div id="custom-words-container">
+                <label class="checkbox-label custom-label" id="custom-label">Custom words/numbers (space or comma separated — these replace the standard phonetic words):</label>
+                <input type="text" id="custom-words-input" placeholder="e.g. myDog 2026 !secure">
+            </div>
+            <button id="generate">Generate New Password</button>
+            <div id="generator-username-box" class="output-box clickable" data-speak="">
+                <div class="label-bold" id="generator-username-box-label">Username</div>
+                <div id="generator-username-text">-</div>
+            </div>
+            <div id="generator-username-phonetic-box" class="phonetic-block clickable" data-speak="">
+                <div class="label-bold" id="generator-username-phonetic-label">Username Phonetic</div>
+                <div id="generator-username-phonetic">-</div>
+            </div>
+            <div id="generator-password-box" class="output-box clickable" data-speak="">
+                <div class="label-bold" id="generator-password-box-label">Generated Password (random part)</div>
+                <div id="generated-password" id="generated-password-initial">Click Generate above</div>
+            </div>
+            <div id="generator-password-phonetic-box" class="phonetic-block clickable" data-speak="">
+                <div class="label-bold" id="generator-password-phonetic-label">Password Phonetic (random part)</div>
+                <div id="generated-phonetic">-</div>
+            </div>
+            <div id="strength-meter"><div id="strength-bar"></div></div>
+            <div id="strength-text" id="strength-initial">Strength: -</div>
+            <div class="buttons">
+                <div class="main-buttons">
+                    <button id="generator-copy-button">📋 Copy</button>
+                    <button id="share-generator">📤 Share</button>
+                    <button id="qr-generator">🔳 QR Code</button>
+                </div>
+                <div class="expanded-copy" id="generator-expanded-copy">
+                    <button id="copy-username-gen">Username</button>
+                    <button id="copy-username-phonetic-gen">U. Phonetic</button>
+                    <button id="copy-password-gen">Password</button>
+                    <button id="copy-password-phonetic-gen">P. Phonetic</button>
+                    <button id="generator-copy-all">Copy All</button>
+                </div>
+                <div class="speech-controls-row">
+                    <button id="speak-aloud">🔊 Speak Aloud</button>
+                    <button id="generator-pause-resume">⏸ Pause</button>
+                    <button id="generator-stop">⏹ Stop All</button>
+                    <div class="speed-control">
+                        <label id="generator-voice-speed-label">Voice Speed:</label>
+                        <input type="range" id="generator-speed" min="0.3" max="2" step="0.1" value="1">
+                    </div>
+                </div>
+                <button class="clear-btn" id="clear-generator">Clear All</button>
+            </div>
+            <button class="back-btn" id="generator-back">← Back to Menu</button>
+        </div>
+    </div>
+    <div id="qr-modal-converter" class="qr-modal">
+        <div class="qr-modal-content">
+            <h2>QR Code of Credentials</h2>
+            <img id="qr-img-converter" alt="QR Code">
+            <button class="qr-close">Close</button>
+        </div>
+    </div>
+    <div id="qr-modal-generator" class="qr-modal">
+        <div class="qr-modal-content">
+            <h2>QR Code of Credentials</h2>
+            <img id="qr-img-generator" alt="QR Code">
+            <button class="qr-close">Close</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const html = document.documentElement;
+            const toggleButtons = document.querySelectorAll('#theme-toggle');
+            function setTheme(theme) {
+                html.setAttribute('data-theme', theme);
+                toggleButtons.forEach(btn => btn.textContent = theme === 'dark' ? '☀️' : '🌙');
+                localStorage.setItem('edgemoorian-theme', theme);
+            }
+            setTheme(localStorage.getItem('edgemoorian-theme') || 'light');
+            toggleButtons.forEach(btn => btn.addEventListener('click', () => setTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')));
+            const splash = document.getElementById('splash');
+            const about = document.getElementById('about-page');
+            const converter = document.getElementById('converter-app');
+            const generator = document.getElementById('generator-app');
+            const phoneticDisplay = document.getElementById('phonetic-display');
+            const customWordsContainer = document.getElementById('custom-words-container');
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+            let lastText = '';
+            let lastSpans = [];
+            function showPage(page) {
+                cancelAllSpeech();
+                [splash, about, converter, generator].forEach(p => p.style.display = 'none');
+                page.style.display = page === splash ? 'flex' : 'block';
+                applyLanguage(currentLang);
+            }
+            document.getElementById('btn-converter').addEventListener('click', () => { showPage(converter); document.getElementById('convert-input').focus(); });
+            document.getElementById('btn-generator').addEventListener('click', () => { showPage(generator); generatePassword(); });
+            document.getElementById('btn-about').addEventListener('click', () => showPage(about));
+            document.getElementById('about-back').addEventListener('click', () => showPage(splash));
+            document.getElementById('converter-back').addEventListener('click', () => showPage(splash));
+            document.getElementById('generator-back').addEventListener('click', () => showPage(splash));
+            let isPaused = false;
+            let currentSpeechRate = 1;
+            let currentWordSpans = [];
+            let currentWordIndex = 0;
+            let currentHighlight = null;
+            document.getElementById('converter-speed').addEventListener('input', e => {
+                currentSpeechRate = parseFloat(e.target.value);
+                document.getElementById('generator-speed').value = e.target.value;
+            });
+            document.getElementById('generator-speed').addEventListener('input', e => {
+                currentSpeechRate = parseFloat(e.target.value);
+                document.getElementById('converter-speed').value = e.target.value;
+            });
+            function cancelAllSpeech() {
+                if ('speechSynthesis' in window) speechSynthesis.cancel();
+                isPaused = false;
+                updatePauseButtons();
+                currentWordIndex = 0;
+                currentWordSpans.forEach(span => span.classList.remove('word-highlight'));
+                currentWordSpans = [];
+                lastText = '';
+                lastSpans = [];
+            }
+            function togglePauseResume() {
+                if (isPaused) {
+                    if (isMobile && lastText) {
+                        speakWithCustomPauses(lastText, lastSpans);
+                    } else {
+                        speechSynthesis.resume();
+                    }
+                    isPaused = false;
+                } else {
+                    speechSynthesis.pause();
+                    isPaused = true;
+                }
+                updatePauseButtons();
+            }
+            document.getElementById('converter-pause-resume').addEventListener('click', togglePauseResume);
+            document.getElementById('generator-pause-resume').addEventListener('click', togglePauseResume);
+            document.getElementById('converter-stop').addEventListener('click', cancelAllSpeech);
+            document.getElementById('generator-stop').addEventListener('click', cancelAllSpeech);
+            function updatePauseButtons() {
+                const t = translations[currentLang] || translations.en;
+                const text = isPaused ? t.resumeBtn : t.pauseBtn;
+                document.getElementById('converter-pause-resume').textContent = text;
+                document.getElementById('generator-pause-resume').textContent = text;
+                document.getElementById('converter-stop').textContent = t.stopAllBtn;
+                document.getElementById('generator-stop').textContent = t.stopAllBtn;
+            }
+            function speakWithCustomPauses(text, spans) {
+                if (!text || !('speechSynthesis' in window)) return;
+                cancelAllSpeech();
+                lastText = text;
+                lastSpans = spans ? [...spans] : [];
+                currentWordSpans = lastSpans;
+                currentWordIndex = 0;
+                const parts = text.split(' ');
+                const utterances = [];
+                parts.forEach(part => {
+                    let spoken = part.toLowerCase();
+                    if (part.includes('_')) {
+                        const [prefix, word] = part.split('_');
+                        spoken = prefix.toLowerCase() + ' ' + word.toLowerCase();
+                    }
+                    const u = new SpeechSynthesisUtterance(spoken);
+                    u.rate = currentSpeechRate;
+                    u.onstart = () => highlightCurrentWord();
+                    utterances.push(u);
+                });
+                let i = 0;
+                function speakNext() {
+                    if (i < utterances.length) {
+                        const u = utterances[i++];
+                        u.onend = speakNext;
+                        speechSynthesis.speak(u);
+                    }
+                }
+                speakNext();
+            }
+            function highlightCurrentWord() {
+                currentWordSpans.forEach(span => span.classList.remove('word-highlight'));
+                if (currentWordSpans.length > currentWordIndex) {
+                    currentWordSpans[currentWordIndex++].classList.add('word-highlight');
+                }
+            }
+            function clearHighlight() {
+                document.querySelectorAll('.clickable').forEach(el => el.classList.remove('highlighted'));
+                currentHighlight = null;
+            }
+            function highlightBlock(el) {
+                clearHighlight();
+                el.classList.add('highlighted');
+                currentHighlight = el;
+            }
+            document.querySelectorAll('.clickable').forEach(el => el.addEventListener('click', e => {
+                e.stopPropagation();
+                highlightBlock(el);
+            }));
+            document.addEventListener('click', e => !e.target.closest('.clickable') && clearHighlight());
+            const generatorUsernameText = document.getElementById('generator-username-text');
+            const generatorUsernamePhoneticBox = document.getElementById('generator-username-phonetic-box');
+            const generatorPasswordPhoneticBox = document.getElementById('generator-password-phonetic-box');
+            const generatorUsernameBox = document.getElementById('generator-username-box');
+            const generatorAddUsername = document.getElementById('generator-add-username');
+            const generatorUsernameInput = document.getElementById('generator-username-input');
+            generatorAddUsername.addEventListener('change', () => {
+                const show = generatorAddUsername.checked;
+                generatorUsernameInput.style.display = show ? 'block' : 'none';
+                generatorUsernameBox.style.display = show ? 'block' : 'none';
+                generatorUsernamePhoneticBox.style.display = show ? 'block' : 'none';
+                generatePassword();
+            });
+            generatorUsernameInput.addEventListener('input', generatePassword);
+            const easyMode = document.getElementById('easy-mode');
+            easyMode.addEventListener('change', () => {
+                customWordsContainer.style.display = easyMode.checked ? 'block' : 'none';
+                generatePassword();
+            });
+            document.getElementById('custom-words-input').addEventListener('input', generatePassword);
+            const converterAddUsername = document.getElementById('converter-add-username');
+            const converterUsernameInput = document.getElementById('converter-username-input');
+            const converterAddPassword = document.getElementById('converter-add-password');
+            const converterPasswordInput = document.getElementById('converter-password-input');
+            converterAddUsername.addEventListener('change', () => {
+                converterUsernameInput.style.display = converterAddUsername.checked ? 'block' : 'none';
+                updateConverterPhonetic();
+            });
+            converterAddPassword.addEventListener('change', () => {
+                converterPasswordInput.style.display = converterAddPassword.checked ? 'block' : 'none';
+                updateConverterPhonetic();
+            });
+            converterUsernameInput.addEventListener('input', updateConverterPhonetic);
+            converterPasswordInput.addEventListener('input', updateConverterPhonetic);
+            document.getElementById('convert-input').addEventListener('input', updateConverterPhonetic);
+            function createPhoneticSpans(phonetic) {
+                const container = document.createElement('div');
+                container.className = 'phonetic-text';
+                phonetic.split(' ').forEach(part => {
+                    const span = document.createElement('span');
+                    span.className = 'word';
+                    span.textContent = part + ' ';
+                    container.appendChild(span);
+                });
+                return container;
+            }
+            function updateConverterPhonetic() {
+                phoneticDisplay.innerHTML = '';
+                clearHighlight();
+                if (converterAddUsername.checked && converterUsernameInput.value.trim()) {
+                    const phonetic = convertToPhonetic(converterUsernameInput.value.trim());
+                    phoneticDisplay.appendChild(createBlock('Username:', converterUsernameInput.value.trim(), phonetic));
+                }
+                if (converterAddPassword.checked && converterPasswordInput.value.trim()) {
+                    const phonetic = convertToPhonetic(converterPasswordInput.value.trim());
+                    phoneticDisplay.appendChild(createBlock('Password:', converterPasswordInput.value.trim(), phonetic));
+                }
+                if (document.getElementById('convert-input').value.trim()) {
+                    const phonetic = convertToPhonetic(document.getElementById('convert-input').value.trim());
+                    phoneticDisplay.appendChild(createBlock('Additional:', document.getElementById('convert-input').value.trim(), phonetic));
+                }
+            }
+            function createBlock(label, text, phonetic) {
+                const block = document.createElement('div');
+                block.className = 'phonetic-block clickable section-gap';
+                block.innerHTML = `<span class="label-bold">${label}</span> ${text}<br>`;
+                block.appendChild(createPhoneticSpans(phonetic));
+                block.dataset.speak = phonetic;
+                block.addEventListener('click', e => {
+                    e.stopPropagation();
+                    highlightBlock(block);
+                });
+                return block;
+            }
+            const phoneticMap = {
+                'a':'alfa','b':'bravo','c':'charlie','d':'delta','e':'echo','f':'foxtrot','g':'golf','h':'hotel','i':'india','j':'juliett',
+                'k':'kilo','l':'lima','m':'mike','n':'november','o':'oscar','p':'papa','q':'quebec','r':'romeo','s':'sierra','t':'tango',
+                'u':'uniform','v':'victor','w':'whiskey','x':'x-ray','y':'yankee','z':'zulu',
+                '0':'Zero','1':'One','2':'Two','3':'Three','4':'Four','5':'Five','6':'Six','7':'Seven','8':'Eight','9':'Nine',
+                '!':'Exclamation mark','@':'At sign','#':'Hash','$':'Dollar sign','%':'Percent','^':'Caret','&':'Ampersand','*':'Asterisk',
+                '(':'Left parenthesis',')':'Right parenthesis','-':'Dash','_':'Underscore','+':'Plus','=':'Equals','[':'Left bracket',']':'Right bracket',
+                '{':'Left brace','}':'Right brace','|':'Pipe',';':'Semicolon',':':'Colon',',':'Comma','.':'Period','?':'Question mark','/':'Slash',
+                '\\':'Backslash','`':'Grave','~':'Tilde',"'":'Apostrophe','"':'Quotation mark'
+            };
+            function convertToPhonetic(text) {
+                return text.split('').map(char => {
+                    const lower = char.toLowerCase();
+                    if (phoneticMap[lower]) {
+                        const word = phoneticMap[lower];
+                        if (char === char.toUpperCase() && /[A-Z]/.test(char)) return 'UPPER_' + word.toUpperCase();
+                        if (/[a-z]/.test(char)) return 'lower_' + word.toLowerCase();
+                        return word;
+                    }
+                    return char;
+                }).join(' ').trim();
+            }
+            async function copyText(text, msg = 'Copied!') {
+                if (!text.trim()) return alert('Nothing to copy!');
+                if (navigator.clipboard) {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        alert(msg);
+                        return;
+                    } catch {}
+                }
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                temp.style.position = 'absolute';
+                temp.style.left = '-9999px';
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                alert(msg);
+            }
+            async function shareText(text) {
+                if (!text.trim()) return alert('Nothing to share yet!');
+                if (navigator.share) {
+                    try { await navigator.share({ title: 'Edgemoorian Phonetic Tools – Secure Credentials', text }); return; }
+                    catch {}
+                }
+                copyText(text, 'Text copied to clipboard — ready to paste and share anywhere!');
+            }
+            document.getElementById('copy-button').addEventListener('click', e => {
+                e.stopPropagation();
+                document.getElementById('converter-expanded-copy').classList.toggle('show');
+            });
+            document.getElementById('generator-copy-button').addEventListener('click', e => {
+                e.stopPropagation();
+                document.getElementById('generator-expanded-copy').classList.toggle('show');
+            });
+            document.getElementById('converter-expanded-copy').addEventListener('click', e => e.stopPropagation());
+            document.getElementById('generator-expanded-copy').addEventListener('click', e => e.stopPropagation());
+            document.addEventListener('click', () => {
+                document.getElementById('converter-expanded-copy').classList.remove('show');
+                document.getElementById('generator-expanded-copy').classList.remove('show');
+            });
+            document.getElementById('copy-username-conv').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = converterUsernameInput.value.trim();
+                copyText(text, text ? 'Username copied!' : 'No username to copy');
+            });
+            document.getElementById('copy-username-phonetic-conv').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = convertToPhonetic(converterUsernameInput.value.trim());
+                copyText(text, text ? 'Username phonetic copied!' : 'No username to copy');
+            });
+            document.getElementById('copy-password-conv').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = converterPasswordInput.value.trim();
+                copyText(text, text ? 'Password copied!' : 'No password to copy');
+            });
+            document.getElementById('copy-password-phonetic-conv').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = convertToPhonetic(converterPasswordInput.value.trim());
+                copyText(text, text ? 'Password phonetic copied!' : 'No password to copy');
+            });
+            document.getElementById('copy-additional-conv').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = document.getElementById('convert-input').value.trim();
+                copyText(text, text ? 'Additional text copied!' : 'No additional text to copy');
+            });
+            document.getElementById('copy-additional-phonetic-conv').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = convertToPhonetic(document.getElementById('convert-input').value.trim());
+                copyText(text, text ? 'Additional phonetic copied!' : 'No additional text to copy');
+            });
+            document.getElementById('copy-all-conv').addEventListener('click', e => {
+                e.stopPropagation();
+                let allText = '';
+                if (converterAddUsername.checked && converterUsernameInput.value.trim()) allText += `username = ${converterUsernameInput.value.trim()}\nusername phonetic = ${convertToPhonetic(converterUsernameInput.value.trim())}\n\n`;
+                if (converterAddPassword.checked && converterPasswordInput.value.trim()) allText += `password = ${converterPasswordInput.value.trim()}\npassword phonetic = ${convertToPhonetic(converterPasswordInput.value.trim())}\n\n`;
+                if (document.getElementById('convert-input').value.trim()) allText += `additional = ${document.getElementById('convert-input').value.trim()}\nadditional phonetic = ${convertToPhonetic(document.getElementById('convert-input').value.trim())}`;
+                copyText(allText.trim(), allText.trim() ? 'All copied!' : 'Nothing to copy');
+            });
+            document.getElementById('copy-username-gen').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = generatorUsernameText.textContent.trim();
+                copyText(text, text !== '-' ? 'Username copied!' : 'No username to copy');
+            });
+            document.getElementById('copy-username-phonetic-gen').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = generatorUsernamePhoneticBox.dataset.speak || '';
+                copyText(text, text ? 'Username phonetic copied!' : 'No username to copy');
+            });
+            document.getElementById('copy-password-gen').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = document.getElementById('generated-password').textContent.trim();
+                copyText(text, 'Password copied!');
+            });
+            document.getElementById('copy-password-phonetic-gen').addEventListener('click', e => {
+                e.stopPropagation();
+                const text = generatorPasswordPhoneticBox.dataset.speak || '';
+                copyText(text, 'Password phonetic copied!');
+            });
+            document.getElementById('generator-copy-all').addEventListener('click', e => {
+                e.stopPropagation();
+                let allText = '';
+                const username = generatorUsernameText.textContent;
+                if (username && username !== '-') allText += `username = ${username}\nusername phonetic = ${generatorUsernamePhoneticBox.dataset.speak}\n\n`;
+                allText += `password = ${document.getElementById('generated-password').textContent}\npassword phonetic = ${generatorPasswordPhoneticBox.dataset.speak}`;
+                copyText(allText, 'All copied!');
+            });
+            document.getElementById('convert-speak').addEventListener('click', e => {
+                e.stopPropagation();
+                cancelAllSpeech();
+                if (currentHighlight && currentHighlight.dataset.speak) {
+                    const spans = Array.from(currentHighlight.querySelectorAll('.word'));
+                    speakWithCustomPauses(currentHighlight.dataset.speak, spans);
+                } else {
+                    let allText = '';
+                    let allSpans = [];
+                    phoneticDisplay.querySelectorAll('.clickable').forEach(b => {
+                        allText += b.dataset.speak + ' ';
+                        allSpans.push(...b.querySelectorAll('.word'));
+                    });
+                    speakWithCustomPauses(allText.trim(), allSpans);
+                }
+            });
+            document.getElementById('speak-aloud').addEventListener('click', e => {
+                e.stopPropagation();
+                cancelAllSpeech();
+                if (currentHighlight && currentHighlight.dataset.speak) {
+                    const spans = Array.from(currentHighlight.querySelectorAll('.word'));
+                    speakWithCustomPauses(currentHighlight.dataset.speak, spans);
+                } else {
+                    const box = document.getElementById('generator-password-phonetic-box');
+                    const spans = Array.from(box.querySelectorAll('.word'));
+                    speakWithCustomPauses(box.dataset.speak, spans);
+                }
+            });
+            const easyWords = ['alfa', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel', 'india', 'juliett', 'kilo', 'lima', 'mike', 'november', 'oscar', 'papa', 'quebec', 'romeo', 'sierra', 'tango', 'uniform', 'victor', 'whiskey', 'xray', 'yankee', 'zulu'];
+            function updateStrength(password) {
+                let strength = 0;
+                if (password.length >= 12) strength += 20;
+                if (password.length >= 16) strength += 20;
+                if (/[a-z]/.test(password)) strength += 15;
+                if (/[A-Z]/.test(password)) strength += 15;
+                if (/\d/.test(password)) strength += 15;
+                if (/[!@#$%^&*()_+\-=[\]{}|;:'",.<>/?\\]/.test(password)) strength += 15;
+                strength = Math.min(strength, 100);
+                const bar = document.getElementById('strength-bar');
+                bar.style.width = strength + '%';
+                let color = 'red';
+                if (strength >= 80) color = 'green';
+                else if (strength >= 50) color = 'orange';
+                bar.style.background = color;
+                document.getElementById('strength-text').textContent = 'Strength: ' + strength + '%';
+            }
+            function generatePassword() {
+                const totalLen = parseInt(document.getElementById('pass-length').value) || 16;
+                const easyMode = document.getElementById('easy-mode').checked;
+                const addUsername = document.getElementById('generator-add-username').checked;
+                const username = addUsername ? generatorUsernameInput.value.trim() : '';
+                let randomPassword = '';
+                if (easyMode) {
+                    let wordsPool = [];
+                    const customInput = document.getElementById('custom-words-input').value.trim();
+                    if (customInput) {
+                        const customItems = customInput.split(/[\s,]+/).map(item => item.trim()).filter(item => item);
+                        wordsPool = customItems.map(item => item.charAt(0).toUpperCase() + item.slice(1));
+                    } else {
+                        wordsPool = [...easyWords];
+                    }
+                    if (wordsPool.length === 0) wordsPool = [...easyWords];
+                    wordsPool = wordsPool.sort(() => Math.random() - 0.5);
+                    randomPassword = '';
+                    wordsPool.forEach(word => {
+                        const num = Math.floor(Math.random() * 100);
+                        randomPassword += word + num;
+                    });
+                    while (randomPassword.length < totalLen) {
+                        const word = wordsPool[Math.floor(Math.random() * wordsPool.length)];
+                        const num = Math.floor(Math.random() * 100);
+                        randomPassword += word + num;
+                    }
+                    randomPassword = randomPassword.substring(0, totalLen);
+                    if (!/[A-Z]/.test(randomPassword)) randomPassword = randomPassword.substring(0, totalLen-1) + 'A';
+                    if (!/[!@#$%^&*]/.test(randomPassword)) randomPassword = randomPassword.substring(0, totalLen-1) + '!';
+                    if (!/\d/.test(randomPassword)) randomPassword = randomPassword.substring(0, totalLen-1) + '1';
+                } else {
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.?';
+                    for (let i = 0; i < totalLen; i++) randomPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                document.getElementById('generated-password').textContent = randomPassword;
+                const passwordPhonetic = convertToPhonetic(randomPassword);
+                const phoneticContainer = createPhoneticSpans(passwordPhonetic);
+                document.getElementById('generated-phonetic').innerHTML = '';
+                document.getElementById('generated-phonetic').appendChild(phoneticContainer);
+                generatorPasswordPhoneticBox.dataset.speak = passwordPhonetic;
+                if (addUsername && username) {
+                    generatorUsernameText.textContent = username;
+                    const userPhonetic = convertToPhonetic(username);
+                    const userContainer = createPhoneticSpans(userPhonetic);
+                    document.getElementById('generator-username-phonetic').innerHTML = '';
+                    document.getElementById('generator-username-phonetic').appendChild(userContainer);
+                    generatorUsernamePhoneticBox.dataset.speak = userPhonetic;
+                } else {
+                    generatorUsernameText.textContent = '-';
+                    document.getElementById('generator-username-phonetic').innerHTML = '-';
+                    generatorUsernamePhoneticBox.dataset.speak = '';
+                }
+                updateStrength(randomPassword);
+            }
+            document.getElementById('generate').addEventListener('click', generatePassword);
+            document.getElementById('easy-mode').addEventListener('change', generatePassword);
+            document.getElementById('pass-length').addEventListener('input', generatePassword);
+            updateConverterPhonetic();
+            generatePassword();
+            document.getElementById('generator-username-input').style.display = 'none';
+            document.getElementById('generator-username-box').style.display = 'none';
+            document.getElementById('generator-username-phonetic-box').style.display = 'none';
+            document.getElementById('clear-converter').addEventListener('click', () => {
+                converterAddUsername.checked = false;
+                converterUsernameInput.value = '';
+                converterUsernameInput.style.display = 'none';
+                converterAddPassword.checked = false;
+                converterPasswordInput.value = '';
+                converterPasswordInput.style.display = 'none';
+                document.getElementById('convert-input').value = '';
+                updateConverterPhonetic();
+            });
+            document.getElementById('clear-generator').addEventListener('click', () => {
+                generatorAddUsername.checked = false;
+                generatorUsernameInput.value = '';
+                generatorUsernameInput.style.display = 'none';
+                easyMode.checked = false;
+                customWordsContainer.style.display = 'none';
+                document.getElementById('custom-words-input').value = '';
+                document.getElementById('pass-length').value = 16;
+                generatePassword();
+            });
+            document.querySelectorAll('.qr-close').forEach(btn => btn.addEventListener('click', () => btn.closest('.qr-modal').style.display = 'none'));
+            document.getElementById('qr-converter').addEventListener('click', () => {
+                let allText = '';
+                if (converterAddUsername.checked && converterUsernameInput.value.trim()) allText += `username = ${converterUsernameInput.value.trim()}\nusername phonetic = ${convertToPhonetic(converterUsernameInput.value.trim())}\n\n`;
+                if (converterAddPassword.checked && converterPasswordInput.value.trim()) allText += `password = ${converterPasswordInput.value.trim()}\npassword phonetic = ${convertToPhonetic(converterPasswordInput.value.trim())}`;
+                if (document.getElementById('convert-input').value.trim()) allText += (allText ? '\n\n' : '') + `additional = ${document.getElementById('convert-input').value.trim()}\nadditional phonetic = ${convertToPhonetic(document.getElementById('convert-input').value.trim())}`;
+                if (!allText.trim()) {
+                    alert('Nothing to generate QR for — enter content first!');
+                    return;
+                }
+                document.getElementById('qr-img-converter').src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(allText)}&size=400x400`;
+                document.getElementById('qr-modal-converter').style.display = 'flex';
+            });
+            document.getElementById('qr-generator').addEventListener('click', () => {
+                let allText = '';
+                const username = generatorUsernameText.textContent;
+                if (username && username !== '-') allText += `username = ${username}\nusername phonetic = ${generatorUsernamePhoneticBox.dataset.speak}\n\n`;
+                allText += `password = ${document.getElementById('generated-password').textContent}\npassword phonetic = ${generatorPasswordPhoneticBox.dataset.speak}`;
+                if (!allText.trim()) {
+                    alert('Nothing to generate QR for — generate a password first!');
+                    return;
+                }
+                document.getElementById('qr-img-generator').src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(allText)}&size=400x400`;
+                document.getElementById('qr-modal-generator').style.display = 'flex';
+            });
+            document.getElementById('share-converter').addEventListener('click', () => {
+                let allText = '';
+                if (converterAddUsername.checked && converterUsernameInput.value.trim()) allText += `username = ${converterUsernameInput.value.trim()}\nusername phonetic = ${convertToPhonetic(converterUsernameInput.value.trim())}\n\n`;
+                if (converterAddPassword.checked && converterPasswordInput.value.trim()) allText += `password = ${converterPasswordInput.value.trim()}\npassword phonetic = ${convertToPhonetic(converterPasswordInput.value.trim())}`;
+                if (document.getElementById('convert-input').value.trim()) allText += (allText ? '\n\n' : '') + `additional = ${document.getElementById('convert-input').value.trim()}\nadditional phonetic = ${convertToPhonetic(document.getElementById('convert-input').value.trim())}`;
+                shareText(allText.trim());
+            });
+            document.getElementById('share-generator').addEventListener('click', () => {
+                let allText = '';
+                const username = generatorUsernameText.textContent;
+                if (username && username !== '-') allText += `username = ${username}\nusername phonetic = ${generatorUsernamePhoneticBox.dataset.speak}\n\n`;
+                allText += `password = ${document.getElementById('generated-password').textContent}\npassword phonetic = ${generatorPasswordPhoneticBox.dataset.speak}`;
+                shareText(allText);
+            });
+            const translations = {
+                en: {
+                    converterBtn: "Alphanumeric To Phonetic Converter",
+                    generatorBtn: "Password Phonetic Generator",
+                    aboutBtn: "About",
+                    converterTitle: "Alphanumeric To Phonetic Converter",
+                    generatorTitle: "Password Phonetic Generator",
+                    converterUsernameLabel: "Add a username",
+                    converterPasswordLabel: "Add a password",
+                    generatorUsernameLabel: "Add a username (separate from password)",
+                    easyModeLabel: "Create easy-to-remember readable pronounceable password",
+                    customLabel: "Custom words/numbers (space or comma separated — these replace the standard phonetic words):",
+                    generateBtn: "Generate New Password",
+                    passLengthLabel: "Password Length:",
+                    usernameBoxLabel: "Username",
+                    usernamePhoneticLabel: "Username Phonetic",
+                    passwordBoxLabel: "Generated Password (random part)",
+                    passwordPhoneticLabel: "Password Phonetic (random part)",
+                    backBtn: "← Back to Menu",
+                    converterUsernamePlaceholder: "Enter username (e.g. nigel)",
+                    converterPasswordPlaceholder: "Enter password (e.g. dtu5)",
+                    convertInputPlaceholder: "Type or paste additional text/code here (optional)",
+                    generatorUsernamePlaceholder: "Enter username (e.g. nigel)",
+                    customPlaceholder: "e.g. myDog 2026 !secure",
+                    speakBtn: "🔊 Speak Aloud",
+                    pauseBtn: "⏸ Pause",
+                    resumeBtn: "▶ Resume",
+                    stopBtn: "⏹ Stop",
+                    restartBtn: "Restart",
+                    stopAllBtn: "⏹ Stop All",
+                    voiceSpeedLabel: "Voice Speed:",
+                    generatedPasswordInitial: "Click Generate above",
+                    strengthInitial: "Strength: -",
+                    copyBtn: "📋 Copy",
+                    shareBtn: "📤 Share",
+                    qrBtn: "🔳 QR Code",
+                    clearAllBtn: "Clear All"
+                },
+                fr: {
+                    converterBtn: "Convertisseur Alphanumérique en Phonétique",
+                    generatorBtn: "Générateur de Mot de Passe Phonétique",
+                    aboutBtn: "À propos",
+                    converterTitle: "Convertisseur Alphanumérique en Phonétique",
+                    generatorTitle: "Générateur de Mot de Passe Phonétique",
+                    converterUsernameLabel: "Ajouter un nom d'utilisateur",
+                    converterPasswordLabel: "Ajouter un mot de passe",
+                    generatorUsernameLabel: "Ajouter un nom d'utilisateur (séparé du mot de passe)",
+                    easyModeLabel: "Créer un mot de passe prononçable facile à retenir",
+                    customLabel: "Mots/nombres personnalisés (séparés par espaces ou virgules — remplacent les mots phonétiques standard):",
+                    generateBtn: "Générer un Nouveau Mot de Passe",
+                    passLengthLabel: "Longueur du Mot de Passe:",
+                    usernameBoxLabel: "Nom d'utilisateur",
+                    usernamePhoneticLabel: "Phonétique Nom d'utilisateur",
+                    passwordBoxLabel: "Mot de Passe Généré (partie aléatoire)",
+                    passwordPhoneticLabel: "Phonétique Mot de Passe (partie aléatoire)",
+                    backBtn: "← Retour au Menu",
+                    converterUsernamePlaceholder: "Entrez nom d'utilisateur (ex. nigel)",
+                    converterPasswordPlaceholder: "Entrez mot de passe (ex. dtu5)",
+                    convertInputPlaceholder: "Tapez ou collez texte/code supplémentaire ici (optionnel)",
+                    generatorUsernamePlaceholder: "Entrez nom d'utilisateur (ex. nigel)",
+                    customPlaceholder: "ex. myDog 2026 !secure",
+                    speakBtn: "🔊 Prononcer à Voix Haute",
+                    pauseBtn: "⏸ Pause",
+                    resumeBtn: "▶ Reprendre",
+                    stopBtn: "⏹ Arrêter",
+                    restartBtn: "Redémarrer",
+                    stopAllBtn: "⏹ Arrêter Tout",
+                    voiceSpeedLabel: "Vitesse de la Voix:",
+                    generatedPasswordInitial: "Cliquez sur Générer ci-dessus",
+                    strengthInitial: "Force : -",
+                    copyBtn: "📋 Copier",
+                    shareBtn: "📤 Partager",
+                    qrBtn: "🔳 Code QR",
+                    clearAllBtn: "Tout Effacer"
+                },
+                de: {
+                    converterBtn: "Alphanumerisch-zu-Phonetisch-Konverter",
+                    generatorBtn: "Passwort-Phonetik-Generator",
+                    aboutBtn: "Über",
+                    converterTitle: "Alphanumerisch-zu-Phonetisch-Konverter",
+                    generatorTitle: "Passwort-Phonetik-Generator",
+                    converterUsernameLabel: "Benutzernamen hinzufügen",
+                    converterPasswordLabel: "Passwort hinzufügen",
+                    generatorUsernameLabel: "Benutzernamen hinzufügen (getrennt vom Passwort)",
+                    easyModeLabel: "Leicht merkbares aussprechbares Passwort erstellen",
+                    customLabel: "Benutzerdefinierte Wörter/Zahlen (durch Leerzeichen oder Kommas getrennt — ersetzen die standard phonetischen Wörter):",
+                    generateBtn: "Neues Passwort Generieren",
+                    passLengthLabel: "Passwortlänge:",
+                    usernameBoxLabel: "Benutzername",
+                    usernamePhoneticLabel: "Phonetik Benutzername",
+                    passwordBoxLabel: "Generiertes Passwort (zufälliger Teil)",
+                    passwordPhoneticLabel: "Phonetik Passwort (zufälliger Teil)",
+                    backBtn: "← Zurück zum Menü",
+                    converterUsernamePlaceholder: "Benutzernamen eingeben (z.B. nigel)",
+                    converterPasswordPlaceholder: "Passwort eingeben (z.B. dtu5)",
+                    convertInputPlaceholder: "Zusätzlichen Text/Code hier eingeben oder einfügen (optional)",
+                    generatorUsernamePlaceholder: "Benutzernamen eingeben (z.B. nigel)",
+                    customPlaceholder: "z.B. myDog 2026 !secure",
+                    speakBtn: "🔊 Laut Vorlesen",
+                    pauseBtn: "⏸ Pause",
+                    resumeBtn: "▶ Fortsetzen",
+                    stopBtn: "⏹ Stoppen",
+                    restartBtn: "Neu starten",
+                    stopAllBtn: "⏹ Alles Stoppen",
+                    voiceSpeedLabel: "Stimmgeschwindigkeit:",
+                    generatedPasswordInitial: "Klicken Sie oben auf Generieren",
+                    strengthInitial: "Stärke: -",
+                    copyBtn: "📋 Kopieren",
+                    shareBtn: "📤 Teilen",
+                    qrBtn: "🔳 QR-Code",
+                    clearAllBtn: "Alles Löschen"
+                },
+                es: {
+                    converterBtn: "Convertidor Alfanumérico a Fonético",
+                    generatorBtn: "Generador de Contraseñas Fonéticas",
+                    aboutBtn: "Acerca de",
+                    converterTitle: "Convertidor Alfanumérico a Fonético",
+                    generatorTitle: "Generador de Contraseñas Fonéticas",
+                    converterUsernameLabel: "Añadir un nombre de usuario",
+                    converterPasswordLabel: "Añadir una contraseña",
+                    generatorUsernameLabel: "Añadir un nombre de usuario (separado de la contraseña)",
+                    easyModeLabel: "Crear contraseña fácil de recordar y pronunciable",
+                    customLabel: "Palabras/números personalizados (separados por espacio o coma — reemplazan las palabras fonéticas estándar):",
+                    generateBtn: "Generar Nueva Contraseña",
+                    passLengthLabel: "Longitud de la Contraseña:",
+                    usernameBoxLabel: "Nombre de usuario",
+                    usernamePhoneticLabel: "Fonética Nombre de usuario",
+                    passwordBoxLabel: "Contraseña Generada (parte aleatoria)",
+                    passwordPhoneticLabel: "Fonética Contraseña (parte aleatoria)",
+                    backBtn: "← Volver al Menú",
+                    converterUsernamePlaceholder: "Ingrese nombre de usuario (ej. nigel)",
+                    converterPasswordPlaceholder: "Ingrese contraseña (ej. dtu5)",
+                    convertInputPlaceholder: "Escriba o pegue texto/código adicional aquí (opcional)",
+                    generatorUsernamePlaceholder: "Ingrese nombre de usuario (ej. nigel)",
+                    customPlaceholder: "ej. myDog 2026 !secure",
+                    speakBtn: "🔊 Leer en Voz Alta",
+                    pauseBtn: "⏸ Pausa",
+                    resumeBtn: "▶ Reanudar",
+                    stopBtn: "⏹ Detener",
+                    restartBtn: "Reiniciar",
+                    stopAllBtn: "⏹ Detener Todo",
+                    voiceSpeedLabel: "Velocidad de Voz:",
+                    generatedPasswordInitial: "Haga clic en Generar arriba",
+                    strengthInitial: "Fuerza: -",
+                    copyBtn: "📋 Copiar",
+                    shareBtn: "📤 Compartir",
+                    qrBtn: "🔳 Código QR",
+                    clearAllBtn: "Borrar Todo"
+                },
+                it: {
+                    converterBtn: "Convertitore Alfanumerico in Fonetico",
+                    generatorBtn: "Generatore di Password Fonetiche",
+                    aboutBtn: "Informazioni",
+                    converterTitle: "Convertitore Alfanumerico in Fonetico",
+                    generatorTitle: "Generatore di Password Fonetiche",
+                    converterUsernameLabel: "Aggiungi un nome utente",
+                    converterPasswordLabel: "Aggiungi una password",
+                    generatorUsernameLabel: "Aggiungi un nome utente (separato dalla password)",
+                    easyModeLabel: "Crea password facile da ricordare e pronunciabile",
+                    customLabel: "Parole/numeri personalizzati (separati da spazio o virgola — sostituiscono le parole fonetiche standard):",
+                    generateBtn: "Genera Nuova Password",
+                    passLengthLabel: "Lunghezza Password:",
+                    usernameBoxLabel: "Nome utente",
+                    usernamePhoneticLabel: "Fonetico Nome utente",
+                    passwordBoxLabel: "Password Generata (parte casuale)",
+                    passwordPhoneticLabel: "Fonetico Password (parte casuale)",
+                    backBtn: "← Torna al Menu",
+                    converterUsernamePlaceholder: "Inserisci nome utente (es. nigel)",
+                    converterPasswordPlaceholder: "Inserisci password (es. dtu5)",
+                    convertInputPlaceholder: "Digita o incolla testo/codice aggiuntivo qui (opzionale)",
+                    generatorUsernamePlaceholder: "Inserisci nome utente (es. nigel)",
+                    customPlaceholder: "es. myDog 2026 !secure",
+                    speakBtn: "🔊 Leggi ad Alta Voce",
+                    pauseBtn: "⏸ Pausa",
+                    resumeBtn: "▶ Riprendi",
+                    stopBtn: "⏹ Ferma",
+                    restartBtn: "Riavvia",
+                    stopAllBtn: "⏹ Ferma Tutto",
+                    voiceSpeedLabel: "Velocità Voce:",
+                    generatedPasswordInitial: "Clicca Genera sopra",
+                    strengthInitial: "Forza: -",
+                    copyBtn: "📋 Copia",
+                    shareBtn: "📤 Condividi",
+                    qrBtn: "🔳 Codice QR",
+                    clearAllBtn: "Cancella Tutto"
+                },
+                nl: {
+                    converterBtn: "Alfanumeriek naar Fonetisch Converter",
+                    generatorBtn: "Wachtwoord Fonetische Generator",
+                    aboutBtn: "Over",
+                    converterTitle: "Alfanumeriek naar Fonetisch Converter",
+                    generatorTitle: "Wachtwoord Fonetische Generator",
+                    converterUsernameLabel: "Voeg een gebruikersnaam toe",
+                    converterPasswordLabel: "Voeg een wachtwoord toe",
+                    generatorUsernameLabel: "Voeg een gebruikersnaam toe (gescheiden van wachtwoord)",
+                    easyModeLabel: "Creëer gemakkelijk te onthouden uitspreekbaar wachtwoord",
+                    customLabel: "Aangepaste woorden/nummers (gescheiden door spatie of komma — vervangen de standaard fonetische woorden):",
+                    generateBtn: "Genereer Nieuw Wachtwoord",
+                    passLengthLabel: "Wachtwoordlengte:",
+                    usernameBoxLabel: "Gebruikersnaam",
+                    usernamePhoneticLabel: "Fonetiek Gebruikersnaam",
+                    passwordBoxLabel: "Gegenereerd Wachtwoord (willekeurig deel)",
+                    passwordPhoneticLabel: "Fonetiek Wachtwoord (willekeurig deel)",
+                    backBtn: "← Terug naar Menu",
+                    converterUsernamePlaceholder: "Voer gebruikersnaam in (bijv. nigel)",
+                    converterPasswordPlaceholder: "Voer wachtwoord in (bijv. dtu5)",
+                    convertInputPlaceholder: "Typ of plak extra tekst/code hier (optioneel)",
+                    generatorUsernamePlaceholder: "Voer gebruikersnaam in (bijv. nigel)",
+                    customPlaceholder: "bijv. myDog 2026 !secure",
+                    speakBtn: "🔊 Hardop Uitspreken",
+                    pauseBtn: "⏸ Pauze",
+                    resumeBtn: "▶ Hervatten",
+                    stopBtn: "⏹ Stoppen",
+                    restartBtn: "Herstarten",
+                    stopAllBtn: "⏹ Alles Stoppen",
+                    voiceSpeedLabel: "Stem Snelheid:",
+                    generatedPasswordInitial: "Klik op Genereren hierboven",
+                    strengthInitial: "Sterkte: -",
+                    copyBtn: "📋 Kopiëren",
+                    shareBtn: "📤 Delen",
+                    qrBtn: "🔳 QR Code",
+                    clearAllBtn: "Alles Wissen"
+                },
+                pt: {
+                    converterBtn: "Conversor Alfanumérico para Fonético",
+                    generatorBtn: "Gerador de Senhas Fonéticas",
+                    aboutBtn: "Sobre",
+                    converterTitle: "Conversor Alfanumérico para Fonético",
+                    generatorTitle: "Gerador de Senhas Fonéticas",
+                    converterUsernameLabel: "Adicionar um nome de usuário",
+                    converterPasswordLabel: "Adicionar uma senha",
+                    generatorUsernameLabel: "Adicionar um nome de usuário (separado da senha)",
+                    easyModeLabel: "Criar senha fácil de lembrar e pronunciável",
+                    customLabel: "Palavras/números personalizados (separados por espaço ou vírgula — substituem as palavras fonéticas padrão):",
+                    generateBtn: "Gerar Nova Senha",
+                    passLengthLabel: "Comprimento da Senha:",
+                    usernameBoxLabel: "Nome de usuário",
+                    usernamePhoneticLabel: "Fonético Nome de usuário",
+                    passwordBoxLabel: "Senha Gerada (parte aleatória)",
+                    passwordPhoneticLabel: "Fonético Senha (parte aleatória)",
+                    backBtn: "← Voltar ao Menu",
+                    converterUsernamePlaceholder: "Insira nome de usuário (ex. nigel)",
+                    converterPasswordPlaceholder: "Insira senha (ex. dtu5)",
+                    convertInputPlaceholder: "Digite ou cole texto/código adicional aqui (opcional)",
+                    generatorUsernamePlaceholder: "Insira nome de usuário (ex. nigel)",
+                    customPlaceholder: "ex. myDog 2026 !secure",
+                    speakBtn: "🔊 Falar em Voz Alta",
+                    pauseBtn: "⏸ Pausar",
+                    resumeBtn: "▶ Retomar",
+                    stopBtn: "⏹ Parar",
+                    restartBtn: "Reiniciar",
+                    stopAllBtn: "⏹ Parar Tudo",
+                    voiceSpeedLabel: "Velocidade da Voz:",
+                    generatedPasswordInitial: "Clique em Gerar acima",
+                    strengthInitial: "Força: -",
+                    copyBtn: "📋 Copiar",
+                    shareBtn: "📤 Compartilhar",
+                    qrBtn: "🔳 Código QR",
+                    clearAllBtn: "Limpar Tudo"
+                },
+                ru: {
+                    converterBtn: "Алфавитно-цифровой в Фонетический Конвертер",
+                    generatorBtn: "Генератор Фонетических Паролей",
+                    aboutBtn: "О программе",
+                    converterTitle: "Алфавитно-цифровой в Фонетический Конвертер",
+                    generatorTitle: "Генератор Фонетических Паролей",
+                    converterUsernameLabel: "Добавить имя пользователя",
+                    converterPasswordLabel: "Добавить пароль",
+                    generatorUsernameLabel: "Добавить имя пользователя (отдельно от пароля)",
+                    easyModeLabel: "Создать легко запоминаемый произносимый пароль",
+                    customLabel: "Пользовательские слова/числа (разделённые пробелами или запятыми — заменяют стандартные фонетические слова):",
+                    generateBtn: "Генерировать Новый Пароль",
+                    passLengthLabel: "Длина Пароля:",
+                    usernameBoxLabel: "Имя пользователя",
+                    usernamePhoneticLabel: "Фонетика Имени пользователя",
+                    passwordBoxLabel: "Сгенерированный Пароль (случайная часть)",
+                    passwordPhoneticLabel: "Фонетика Пароля (случайная часть)",
+                    backBtn: "← Вернуться в Меню",
+                    converterUsernamePlaceholder: "Введите имя пользователя (напр. nigel)",
+                    converterPasswordPlaceholder: "Введите пароль (напр. dtu5)",
+                    convertInputPlaceholder: "Введите или вставьте дополнительный текст/код здесь (опционально)",
+                    generatorUsernamePlaceholder: "Введите имя пользователя (напр. nigel)",
+                    customPlaceholder: "напр. myDog 2026 !secure",
+                    speakBtn: "🔊 Произнести вслух",
+                    pauseBtn: "⏸ Пауза",
+                    resumeBtn: "▶ Продолжить",
+                    stopBtn: "⏹ Остановить",
+                    restartBtn: "Перезапустить",
+                    stopAllBtn: "⏹ Остановить Всё",
+                    voiceSpeedLabel: "Скорость Голоса:",
+                    generatedPasswordInitial: "Нажмите Генерировать выше",
+                    strengthInitial: "Сила: -",
+                    copyBtn: "📋 Копировать",
+                    shareBtn: "📤 Поделиться",
+                    qrBtn: "🔳 QR Код",
+                    clearAllBtn: "Очистить Всё"
+                },
+                zh: {
+                    converterBtn: "字母数字到音标转换器",
+                    generatorBtn: "密码音标生成器",
+                    aboutBtn: "关于",
+                    converterTitle: "字母数字到音标转换器",
+                    generatorTitle: "密码音标生成器",
+                    converterUsernameLabel: "添加用户名",
+                    converterPasswordLabel: "添加密码",
+                    generatorUsernameLabel: "添加用户名（与密码分开）",
+                    easyModeLabel: "创建易记易读的密码",
+                    customLabel: "自定义单词/数字（空格或逗号分隔 — 替换标准音标单词）：",
+                    generateBtn: "生成新密码",
+                    passLengthLabel: "密码长度：",
+                    usernameBoxLabel: "用户名",
+                    usernamePhoneticLabel: "用户名音标",
+                    passwordBoxLabel: "生成的密码（随机部分）",
+                    passwordPhoneticLabel: "密码音标（随机部分）",
+                    backBtn: "← 返回菜单",
+                    converterUsernamePlaceholder: "输入用户名（例如 nigel）",
+                    converterPasswordPlaceholder: "输入密码（例如 dtu5）",
+                    convertInputPlaceholder: "在此输入或粘贴额外文本/代码（可选）",
+                    generatorUsernamePlaceholder: "输入用户名（例如 nigel）",
+                    customPlaceholder: "例如 myDog 2026 !secure",
+                    speakBtn: "🔊 大声朗读",
+                    pauseBtn: "⏸ 暂停",
+                    resumeBtn: "▶ 继续",
+                    stopBtn: "⏹ 停止",
+                    restartBtn: "重新开始",
+                    stopAllBtn: "⏹ 停止全部",
+                    voiceSpeedLabel: "语音速度：",
+                    generatedPasswordInitial: "点击上方生成",
+                    strengthInitial: "强度： -",
+                    copyBtn: "📋 复制",
+                    shareBtn: "📤 分享",
+                    qrBtn: "🔳 二维码",
+                    clearAllBtn: "全部清除"
+                }
+            };
+            let currentLang = localStorage.getItem('appLanguage') || 'en';
+            const langSelector = document.getElementById('language-selector');
+            if (langSelector) langSelector.value = currentLang;
+            function applyLanguage(lang) {
+                currentLang = lang;
+                localStorage.setItem('appLanguage', lang);
+                const t = translations[lang] || translations.en;
+                document.getElementById('btn-converter').textContent = t.converterBtn;
+                document.getElementById('btn-generator').textContent = t.generatorBtn;
+                document.getElementById('btn-about').textContent = t.aboutBtn;
+                const converterTitle = document.getElementById('converter-title');
+                if (converterTitle) converterTitle.textContent = t.converterTitle;
+                const generatorTitle = document.getElementById('generator-title');
+                if (generatorTitle) generatorTitle.textContent = t.generatorTitle;
+                const converterUsernameLabel = document.getElementById('converter-username-label');
+                if (converterUsernameLabel) converterUsernameLabel.textContent = t.converterUsernameLabel;
+                const converterPasswordLabel = document.getElementById('converter-password-label');
+                if (converterPasswordLabel) converterPasswordLabel.textContent = t.converterPasswordLabel;
+                const generatorUsernameLabel = document.getElementById('generator-username-label');
+                if (generatorUsernameLabel) generatorUsernameLabel.textContent = t.generatorUsernameLabel;
+                const easyModeLabel = document.getElementById('easy-mode-label');
+                if (easyModeLabel) easyModeLabel.textContent = t.easyModeLabel;
+                const customLabel = document.getElementById('custom-label');
+                if (customLabel) customLabel.textContent = t.customLabel;
+                const passLengthLabel = document.getElementById('pass-length-label');
+                if (passLengthLabel) passLengthLabel.textContent = t.passLengthLabel;
+                const converterVoiceSpeedLabel = document.getElementById('converter-voice-speed-label');
+                if (converterVoiceSpeedLabel) converterVoiceSpeedLabel.textContent = t.voiceSpeedLabel;
+                const generatorVoiceSpeedLabel = document.getElementById('generator-voice-speed-label');
+                if (generatorVoiceSpeedLabel) generatorVoiceSpeedLabel.textContent = t.voiceSpeedLabel;
+                const converterUsernameInput = document.getElementById('converter-username-input');
+                if (converterUsernameInput) converterUsernameInput.placeholder = t.converterUsernamePlaceholder;
+                const converterPasswordInput = document.getElementById('converter-password-input');
+                if (converterPasswordInput) converterPasswordInput.placeholder = t.converterPasswordPlaceholder;
+                const convertInput = document.getElementById('convert-input');
+                if (convertInput) convertInput.placeholder = t.convertInputPlaceholder;
+                const generatorUsernameInput = document.getElementById('generator-username-input');
+                if (generatorUsernameInput) generatorUsernameInput.placeholder = t.generatorUsernamePlaceholder;
+                const customWordsInput = document.getElementById('custom-words-input');
+                if (customWordsInput) customWordsInput.placeholder = t.customPlaceholder;
+                const generate = document.getElementById('generate');
+                if (generate) generate.textContent = t.generateBtn;
+                const convertSpeak = document.getElementById('convert-speak');
+                if (convertSpeak) convertSpeak.textContent = t.speakBtn;
+                const speakAloud = document.getElementById('speak-aloud');
+                if (speakAloud) speakAloud.textContent = t.speakBtn;
+                const copyButton = document.getElementById('copy-button');
+                if (copyButton) copyButton.textContent = t.copyBtn;
+                const generatorCopyButton = document.getElementById('generator-copy-button');
+                if (generatorCopyButton) generatorCopyButton.textContent = t.copyBtn;
+                const shareConverter = document.getElementById('share-converter');
+                if (shareConverter) shareConverter.textContent = t.shareBtn;
+                const shareGenerator = document.getElementById('share-generator');
+                if (shareGenerator) shareGenerator.textContent = t.shareBtn;
+                const qrConverter = document.getElementById('qr-converter');
+                if (qrConverter) qrConverter.textContent = t.qrBtn;
+                const qrGenerator = document.getElementById('qr-generator');
+                if (qrGenerator) qrGenerator.textContent = t.qrBtn;
+                document.querySelectorAll('.back-btn').forEach(btn => btn.textContent = t.backBtn);
+                document.querySelectorAll('.clear-btn').forEach(btn => btn.textContent = t.clearAllBtn);
+                const generatorUsernameBoxLabel = document.getElementById('generator-username-box-label');
+                if (generatorUsernameBoxLabel) generatorUsernameBoxLabel.textContent = t.usernameBoxLabel;
+                const generatorUsernamePhoneticLabel = document.getElementById('generator-username-phonetic-label');
+                if (generatorUsernamePhoneticLabel) generatorUsernamePhoneticLabel.textContent = t.usernamePhoneticLabel;
+                const generatorPasswordBoxLabel = document.getElementById('generator-password-box-label');
+                if (generatorPasswordBoxLabel) generatorPasswordBoxLabel.textContent = t.passwordBoxLabel;
+                const generatorPasswordPhoneticLabel = document.getElementById('generator-password-phonetic-label');
+                if (generatorPasswordPhoneticLabel) generatorPasswordPhoneticLabel.textContent = t.passwordPhoneticLabel;
+                const generatedPasswordInitial = document.getElementById('generated-password-initial');
+                if (generatedPasswordInitial) generatedPasswordInitial.textContent = t.generatedPasswordInitial;
+                const strengthInitial = document.getElementById('strength-initial');
+                if (strengthInitial) strengthInitial.textContent = t.strengthInitial;
+                updatePauseButtons();
+            }
+            if (langSelector) langSelector.addEventListener('change', (e) => applyLanguage(e.target.value));
+            applyLanguage(currentLang);
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const aboutLangSelector = document.getElementById('about-language-selector');
+            const aboutContents = document.querySelectorAll('.about-content');
+            function switchAboutLanguage(lang) {
+                aboutContents.forEach(div => div.style.display = 'none');
+                const current = document.getElementById('about-content-' + lang);
+                if (current) current.style.display = 'block';
+            }
+            if (aboutLangSelector) {
+                aboutLangSelector.addEventListener('change', (e) => switchAboutLanguage(e.target.value));
+                switchAboutLanguage('en');
+            }
+        });
+    </script>
+</body>
+</html>
