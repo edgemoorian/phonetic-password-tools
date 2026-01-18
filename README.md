@@ -10,3 +10,5 @@ Night mode, adjustable voice speed
 All local — no data collected, no internet required
 Installable on phone/home screen
 Cache refresh – ignore this line
+
+Temporary cache refresh line – ignore
