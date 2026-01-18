@@ -1,13 +1,13 @@
-// service-worker.js - Updated for all PWABuilder icons (Edgemoorian Tools)
+// service-worker.js - Fixed for Edgemoorian Tools (single-page app with PWABuilder icons)
 
-// Bump this version to v2 (or higher if you already used v2) to force browsers to update and use the new cache with all icons!
+// Bump to v2 (or v3 if you used v2 before) – forces browsers to update cache with new icons/files
 const CACHE_NAME = 'edgemoorian-tools-v2';
 
 const ASSETS_TO_CACHE = [
   '/',                              // Root page
   '/index.html',                    // Main HTML
-  '/manifest.json',                 // Manifest (critical for PWA)
-  // All your exact icons from the repo (standard + maskable from PWABuilder)
+  '/manifest.json',                 // Manifest
+  // All 14 icons from PWABuilder + your originals
   '/icon-16.png',
   '/icon-32.png',
   '/icon-48.png',
@@ -22,10 +22,9 @@ const ASSETS_TO_CACHE = [
   '/icon-512.png',
   '/maskable-icon-192.png',
   '/maskable-icon-512.png'
-  // That's all – your app has no other files!
 ];
 
-// Install: precache everything
+// Install: precache only real files (no errors!)
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -45,13 +44,13 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: cache-first with network fallback + offline message
+// Fetch: cache-first + simple offline fallback
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) return;
 
   event.respondWith(
     caches.match(event.request)
       .then(cached => cached || fetch(event.request))
-      .catch(() => new Response('Offline – your app works fully once installed!', { headers: { 'Content-Type': 'text/plain' } }))
+      .catch(() => new Response('Offline – app works fully once installed!', { headers: { 'Content-Type': 'text/plain' } }))
   );
 });
