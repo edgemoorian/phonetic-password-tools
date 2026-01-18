@@ -1,7 +1,7 @@
 {
   "name": "Edgemoorian Phonetic & Password Tools",
   "short_name": "Edgemoorian Tools",
-  "description": "Offline phonetic converter and password generator with speech support in 9 languages. No data collected – all local.",
+  "description": "Offline phonetic converter and password generator with speech support in 9 languages. No data collected – all local processing.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffff00",
@@ -12,13 +12,25 @@
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "maskable-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "maskable-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
