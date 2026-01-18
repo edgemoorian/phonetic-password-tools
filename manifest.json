@@ -7,7 +7,7 @@
   "background_color": "#ffff00",
   "theme_color": "#ffff00",
   "orientation": "portrait-primary",
-  "id": "/",   // ← Unique stable identifier (fixes the suggestion)
+  "id": "/",
   "icons": [
     {
       "src": "icon-192.png",
@@ -33,12 +33,11 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-    // Keep any extra PWABuilder icons here if they were added!
   ],
-  "screenshots": [   // ← Adds your 7 screenshots (fixes "none in manifest")
+  "screenshots": [
     {
       "src": "screenshot-splash.png",
-      "sizes": "1080x1920",   // Adjust if your actual size differs (or leave – it's flexible)
+      "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "App splash screen with language selector"
