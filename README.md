@@ -9,3 +9,4 @@ Supports 9 languages (English, French, German, Spanish, Italian, Dutch, Portugue
 Night mode, adjustable voice speed
 All local — no data collected, no internet required
 Installable on phone/home screen
+Cache refresh – ignore this line
