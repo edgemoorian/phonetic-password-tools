@@ -7,6 +7,7 @@
   "background_color": "#ffff00",
   "theme_color": "#ffff00",
   "orientation": "portrait-primary",
+  "id": "/",   // ← Unique stable identifier (fixes the suggestion)
   "icons": [
     {
       "src": "icon-192.png",
@@ -31,6 +32,58 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+    // Keep any extra PWABuilder icons here if they were added!
+  ],
+  "screenshots": [   // ← Adds your 7 screenshots (fixes "none in manifest")
+    {
+      "src": "screenshot-splash.png",
+      "sizes": "1080x1920",   // Adjust if your actual size differs (or leave – it's flexible)
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "App splash screen with language selector"
+    },
+    {
+      "src": "screenshot-phonetic-converter-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Alphanumeric to Phonetic Converter input"
+    },
+    {
+      "src": "screenshot-phonetic-converter-2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Phonetic output with speech controls"
+    },
+    {
+      "src": "screenshot-password generator 1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Password Phonetic Generator"
+    },
+    {
+      "src": "screenshot-night mode.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Night mode for low-light use"
+    },
+    {
+      "src": "screenshot-2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Additional app feature"
+    },
+    {
+      "src": "screenshot-3.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Additional app feature"
     }
   ]
 }
