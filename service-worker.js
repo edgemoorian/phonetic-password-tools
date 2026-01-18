@@ -1,13 +1,12 @@
-// service-worker.js - Fixed for Edgemoorian Tools (single-page app with PWABuilder icons)
+// service-worker.js - Robust version for Edgemoorian Tools (ignores precache failures)
 
-// Bump to v2 (or v3 if you used v2 before) – forces browsers to update cache with new icons/files
-const CACHE_NAME = 'edgemoorian-tools-v2';
+// Bump to v3 to force fresh update/cache
+const CACHE_NAME = 'edgemoorian-tools-v3';
 
 const ASSETS_TO_CACHE = [
-  '/',                              // Root page
-  '/index.html',                    // Main HTML
-  '/manifest.json',                 // Manifest
-  // All 14 icons from PWABuilder + your originals
+  '/', 
+  '/index.html', 
+  '/manifest.json',
   '/icon-16.png',
   '/icon-32.png',
   '/icon-48.png',
@@ -24,12 +23,18 @@ const ASSETS_TO_CACHE = [
   '/maskable-icon-512.png'
 ];
 
-// Install: precache only real files (no errors!)
+// Install: cache one by one (ignore failures – no crash)
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS_TO_CACHE))
-      .catch(err => console.error('Precaching failed:', err))
+    caches.open(CACHE_NAME).then(cache => {
+      return Promise.all(
+        ASSETS_TO_CACHE.map(url => {
+          return fetch(url).then(response => {
+            if (response.ok) return cache.put(url, response);
+          }).catch(() => console.log(`Failed to cache ${url} – skipping`));
+        })
+      );
+    }).catch(err => console.error('Cache open failed:', err))
   );
   self.skipWaiting();
 });
@@ -44,13 +49,13 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: cache-first + simple offline fallback
+// Fetch: cache-first + offline fallback
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) return;
 
   event.respondWith(
     caches.match(event.request)
       .then(cached => cached || fetch(event.request))
-      .catch(() => new Response('Offline – app works fully once installed!', { headers: { 'Content-Type': 'text/plain' } }))
+      .catch(() => new Response('Offline – app works fully!', { headers: { 'Content-Type': 'text/plain' } }))
   );
 });
