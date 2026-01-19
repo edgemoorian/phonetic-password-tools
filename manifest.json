@@ -84,13 +84,6 @@
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Additional app feature"
-    },
-    {
-      "src": "screenshot-wide.png",   // ← Your new resized file name (change if different)
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Desktop/tablet view of the app"
     }
   ]
 }
