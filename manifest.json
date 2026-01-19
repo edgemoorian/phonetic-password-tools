@@ -9,7 +9,6 @@
   "theme_color": "#ffff00",
   "orientation": "portrait-primary",
   "id": "/",
-  "categories": ["utilities", "productivity"],
   "icons": [
     {
       "src": "icon-192.png",
@@ -85,13 +84,6 @@
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Additional app feature"
-    },
-    {
-      "src": "screenshot-wide.png",   // ← Your new 1920x1080 file (change name if different)
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Desktop/tablet view of the app"
     }
   ]
 }
