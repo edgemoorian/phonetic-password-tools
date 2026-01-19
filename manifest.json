@@ -45,42 +45,42 @@
     },
     {
       "src": "screenshot-phonetic-converter-1.png",
-      "sizes": "1080x2280",
+      "sizes": "914x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Alphanumeric to Phonetic Converter input"
     },
     {
       "src": "screenshot-phonetic-converter-2.png",
-      "sizes": "1080x2280",
+      "sizes": "920x1913",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Phonetic output with speech controls"
     },
     {
       "src": "screenshot-password-generator-1.png",
-      "sizes": "1080x2280",
+      "sizes": "915x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Password Phonetic Generator"
     },
     {
       "src": "screenshot-night-mode.png",
-      "sizes": "1080x2280",
+      "sizes": "907x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Night mode for low-light use"
     },
     {
       "src": "screenshot-2.png",
-      "sizes": "1080x2280",
+      "sizes": "947x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Additional app feature"
     },
     {
       "src": "screenshot-3.png",
-      "sizes": "1080x2280",
+      "sizes": "896x1918",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Additional app feature"
