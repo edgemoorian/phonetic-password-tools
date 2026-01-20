@@ -91,7 +91,7 @@
         #converter-app .container #theme-toggle,
         #generator-app .container #theme-toggle {
             position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.2); border: none; font-size: 24px;
-            cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             z-index: 1000; transition: background 0.3s;
         }
         #converter-app .container #theme-toggle:hover,
@@ -1911,7 +1911,7 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./service-worker.js')
+          navigator.serviceWorker.register('/service-worker.js')
             .then(reg => {
               console.log('Service Worker registered successfully:', reg);
             })
@@ -1922,5 +1922,4 @@
       }
     </script>
 </body>
-
 </html>
